@@ -39,7 +39,14 @@ Google Antigravity CLI (`agy`) secara bawaan hanya menyimpan satu sesi login akt
 
 ## 📦 Cara Instalasi
 
-Jalankan perintah berikut di Termux / Linux:
+Pilih salah satu cara instalasi di bawah ini (Termux / Linux):
+
+### Cara 1: Instal Cepat via One-Line Script (cURL)
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/0xposa/antigravity-switcher/main/install.sh)"
+```
+
+### Cara 2: Menggunakan Git Clone
 ```bash
 git clone https://github.com/0xposa/antigravity-switcher.git
 cd antigravity-switcher
@@ -158,8 +165,15 @@ Google Antigravity CLI (`agy`) natively only retains a single active login sessi
 ---
 
 ## 📦 Installation
+ 
+Choose one of the installation methods below (Termux / Linux):
 
-Run the following commands in Termux or Linux:
+### Option 1: Quick Install via One-Liner Script (cURL)
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/0xposa/antigravity-switcher/main/install.sh)"
+```
+
+### Option 2: Using Git Clone
 ```bash
 git clone https://github.com/0xposa/antigravity-switcher.git
 cd antigravity-switcher

@@ -20,7 +20,16 @@ else
   mkdir -p "$BIN_DIR"
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
+CLEANUP_TEMP=0
+
+if [ -z "$SCRIPT_DIR" ] || [ ! -f "$SCRIPT_DIR/bin/agy-switcher" ]; then
+  TEMP_DIR="$(mktemp -d)"
+  CLEANUP_TEMP=1
+  echo "📥 Mengunduh repository antigravity-switcher..."
+  git clone --depth=1 https://github.com/0xposa/antigravity-switcher.git "$TEMP_DIR"
+  SCRIPT_DIR="$TEMP_DIR"
+fi
 
 echo "📁 Installing binaries to: $BIN_DIR"
 cp "$SCRIPT_DIR/bin/agy-switcher" "$BIN_DIR/agy-switcher"
@@ -58,6 +67,10 @@ if [ -f "$SCRIPT_DIR/AGENTS.md" ]; then
   cp "$SCRIPT_DIR/AGENTS.md" "$HOME/GEMINI.md"
   mkdir -p "$HOME/.gemini/antigravity-cli"
   cp "$SCRIPT_DIR/AGENTS.md" "$HOME/.gemini/antigravity-cli/GEMINI.md"
+fi
+
+if [ "$CLEANUP_TEMP" -eq 1 ] && [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+  rm -rf "$TEMP_DIR"
 fi
 
 echo -e "\n\033[1;32m✅ Instalasi Berhasil!\033[0m"
