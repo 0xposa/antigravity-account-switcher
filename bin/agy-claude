@@ -40,9 +40,9 @@ echo -e "\033[1;32m       Antigravity Auto-Runner (Model Rotator)          \033[
 echo -e "  Model aktif: \033[1;33m$MODEL\033[0m"
 echo -e "\033[1;34m========================================================\033[0m"
 
-# Tampilkan akun yang aktif jika agy-rotation tersedia
-if command -v agy-rotation >/dev/null 2>&1; then
-  agy-rotation --list | grep "\[AKTIF\]" || true
+# Tampilkan akun yang aktif jika agy-switcher tersedia
+if command -v agy-switcher >/dev/null 2>&1; then
+  agy-switcher --list | grep "\[AKTIF\]" || true
 fi
 
 # Jalankan sesi pertama
@@ -62,13 +62,13 @@ while true; do
 
   # Lakukan rotasi akun
   echo -e "\n\033[1;36m[Auto-Switch] Melakukan rotasi ke akun berikutnya...\033[0m"
-  if command -v agy-rotation >/dev/null 2>&1; then
-    agy-rotation --rotate || {
-      echo "Gagal rotasi akun. Pastikan Anda sudah menambahkan minimal 2 akun via menu 'agy-rotation'."
+  if command -v agy-switcher >/dev/null 2>&1; then
+    agy-switcher --rotate || {
+      echo "Gagal rotasi akun. Pastikan Anda sudah menambahkan minimal 2 akun via menu 'agy-switcher'."
       break
     }
   else
-    echo "Perintah agy-rotation tidak ditemukan di PATH."
+    echo "Perintah agy-switcher tidak ditemukan di PATH."
     break
   fi
 

@@ -161,7 +161,7 @@ def rotate_account_internal():
 
 TEXTS = {
     "id": {
-        "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
+        "title": "ANTIGRAVITY ACCOUNT SWITCHER CLI",
         "menu_title": "                  MENU UTAMA",
         "opt1": "Tambah Akun (Add account)",
         "opt2": "Hapus Akun (Remove account)",
@@ -193,7 +193,7 @@ TEXTS = {
         "del_was_active": "Akun yang dihapus adalah akun aktif. Mengalihkan ke akun lain..."
     },
     "en": {
-        "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
+        "title": "ANTIGRAVITY ACCOUNT SWITCHER CLI",
         "menu_title": "                  MAIN MENU",
         "opt1": "Add account",
         "opt2": "Remove account",

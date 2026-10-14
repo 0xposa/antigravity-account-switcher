@@ -1,17 +1,17 @@
 ---
-name: switch-account
-description: Mengalihkan akun Antigravity ke akun lain dalam pool. Tampilkan pilihan akun yang tersimpan secara interaktif setelah command /switch-account dipilih.
+name: account-switcher
+description: Mengalihkan akun Antigravity ke akun lain dalam pool. Tampilkan pilihan akun yang tersimpan secara interaktif setelah command /account-switcher dipilih.
 ---
 
 # Antigravity Account Switcher Skill
 
 Skill ini digunakan khusus di dalam Antigravity untuk beralih antar akun Google/Antigravity yang tersimpan.
 
-## Alur Eksekusi Saat /switch-account Dipanggil:
+## Alur Eksekusi Saat /account-switcher Dipanggil:
 1. **Dapatkan Daftar Akun:**
    Jalankan perintah:
    ```bash
-   agy-rotation --list-json
+   agy-switcher --list-json
    ```
 2. **Tampilkan Opsi Pemilihan Akun:**
    Gunakan tool `ask_question` untuk menampilkan semua akun yang tersedia.
@@ -27,9 +27,9 @@ Skill ini digunakan khusus di dalam Antigravity untuk beralih antar akun Google/
 3. **Eksekusi Pengalihan:**
    Setelah pengguna memilih akun target, jalankan:
    ```bash
-   agy-rotation --switch "<email_atau_nomor_pilihan>"
+   agy-switcher --switch "<email_atau_nomor_pilihan>"
    ```
 4. **Konfirmasi:**
    Beri tahu pengguna bahwa akun aktif telah berhasil dialihkan ke akun yang dipilih.
 
-*(Catatan: Penambahan akun baru (Add account) dan penghapusan akun (Remove account) dilakukan melalui menu terminal Termux `agy-rotation`)*.
+*(Catatan: Penambahan akun baru (Add account) dan penghapusan akun (Remove account) dilakukan melalui menu terminal Termux `agy-switcher`)*.

@@ -1,13 +1,13 @@
 ---
-name: model-rotation
-description: Pilihan model Antigravity dan aktifkan rotasi akun otomatis saat terkena rate limit/kuota habis. Gunakan untuk /model-rotation, /model-rotasi, "model rotation", "ganti model".
+name: model-switcher
+description: Pilihan model Antigravity dan aktifkan rotasi akun otomatis saat terkena rate limit/kuota habis. Gunakan untuk /model-switcher, /model-rotasi, "model switcher", "ganti model".
 ---
 
-# Model Rotation & Quota Auto-Switch Skill
+# Model Switcher & Quota Auto-Switch Skill
 
 Skill ini digunakan untuk memilih model AI Antigravity serta mengaktifkan proteksi rotasi akun otomatis jika kuota/rate limit model habis.
 
-## Alur Eksekusi Saat /model-rotation Dipanggil:
+## Alur Eksekusi Saat /model-switcher Dipanggil:
 1. **Tampilkan Pilihan Model:**
    Gunakan tool `ask_question` untuk menampilkan opsi model Antigravity:
    - `Gemini 3.8 Flash (Medium)` (Cepat, hemat token, kuota longgar)
@@ -30,7 +30,7 @@ Saat Anda (AI) mendeteksi respon error seperti:
 Lakukan langkah otonom berikut seketika:
 1. Jalankan perintah di background:
    ```bash
-   agy-rotation --rotate
+   agy-switcher --rotate
    ```
 2. Ambil output email baru yang dihasilkan perintah tersebut.
 3. Beritahukan secara singkat:
