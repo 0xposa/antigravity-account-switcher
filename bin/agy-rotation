@@ -14,6 +14,26 @@ ACCOUNTS_DIR = os.path.join(AGY_DIR, "accounts")
 
 os.makedirs(ACCOUNTS_DIR, exist_ok=True)
 
+# ----------------- Screen Helper -----------------
+
+def clear_screen():
+    """Clear terminal screen and scrollback buffer completely."""
+    # os.system("clear") clears the visible screen and scrollback in Termux
+    os.system("clear")
+    # ANSI escape guarantee
+    sys.stdout.write("\033[2J\033[H\033[3J")
+    sys.stdout.flush()
+
+def get_cat_banner(lang="id"):
+    quote = "Limit kuota? Rotate meow!" if lang == "id" else "Quota limit? Rotate meow!"
+    return f"""\033[1;34m╭───────────────────────────────────────────────╮\033[0m
+\033[1;34m│\033[0m        \033[1;36m/\\_/\\\033[0m                                  \033[1;34m│\033[0m
+\033[1;34m│\033[0m       \033[1;36m/ \033[1;30;47m⌐■-■\033[0;1;36m\\\033[0m       \033[1;35m🐱 NERD CAT ROTATOR\033[0m       \033[1;34m│\033[0m
+\033[1;34m│\033[0m      \033[1;36m(  \033[1;37m(o.o)\033[1;36m )\033[0m     \033[1;33m🤓 "{quote}"\033[0m\033[1;34m│\033[0m
+\033[1;34m│\033[0m       \033[1;36m\\ \033[1;37;40m[| |]\033[0;1;36m /\033[0m     \033[1;32m⚡ by @0xposa\033[0m             \033[1;34m│\033[0m
+\033[1;34m│\033[0m        \033[1;36m\\_____/\033[0m                                \033[1;34m│\033[0m
+\033[1;34m╰───────────────────────────────────────────────╯\033[0m"""
+
 # ----------------- Helper Functions -----------------
 
 def get_email_from_token_file(filepath):
@@ -134,12 +154,12 @@ def rotate_account_internal():
 TEXTS = {
     "id": {
         "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
-        "menu_title": "MENU UTAMA",
-        "opt1": "Tambah Akun (Add account)",
-        "opt2": "Hapus Akun (Remove account)",
-        "opt3": "Daftar Akun (List account)",
-        "opt4": "Keluar",
-        "choose": "Pilih menu [1-4]: ",
+        "menu_title": "           📋 MENU UTAMA 📋",
+        "opt1": "➕  Tambah Akun (Add account)",
+        "opt2": "🗑️   Hapus Akun (Remove account)",
+        "opt3": "📜  Daftar Akun (List account)",
+        "opt4": "🚪  Keluar (Exit)",
+        "choose": "👉 Pilih menu [1-4]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
         "press_enter": "Tekan [Enter] untuk kembali ke menu...",
         "ctrl_c_hint": "💡 Tekan Ctrl+C untuk keluar kapan saja",
@@ -166,12 +186,12 @@ TEXTS = {
     },
     "en": {
         "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
-        "menu_title": "MAIN MENU",
-        "opt1": "Add account",
-        "opt2": "Remove account",
-        "opt3": "List account",
-        "opt4": "Exit",
-        "choose": "Select option [1-4]: ",
+        "menu_title": "           📋 MAIN MENU 📋",
+        "opt1": "➕  Add account",
+        "opt2": "🗑️   Remove account",
+        "opt3": "📜  List account",
+        "opt4": "🚪  Exit",
+        "choose": "👉 Select option [1-4]: ",
         "invalid": "Invalid selection. Please try again.",
         "press_enter": "Press [Enter] to return to menu...",
         "ctrl_c_hint": "💡 Press Ctrl+C to exit anytime",
@@ -199,23 +219,27 @@ TEXTS = {
 }
 
 def print_list(lang="id"):
+    clear_screen()
     t = TEXTS[lang]
+    print(get_cat_banner(lang))
     sync_active_token()
     accounts = get_accounts()
-    print(f"\n================= {t['list_title']} =================")
+    print(f"\n\033[1;36m================= {t['list_title']} =================\033[0m")
     if not accounts:
         print(f" {t['no_acc']}")
     else:
         for idx, acc in enumerate(accounts, 1):
             tag = f" \033[1;32m{t['active_tag']}\033[0m" if acc["is_active"] else ""
-            print(f" {idx}. {acc['email']}{tag}")
-            print(f"    File: {acc['file']} | Exp: {acc['expiry']}")
-    print("=" * (len(t['list_title']) + 36))
-    print(f"{t['total']}: {len(accounts)}\n")
+            print(f" \033[1;33m{idx}.\033[0m \033[1;37m{acc['email']}\033[0m{tag}")
+            print(f"    \033[2mFile: {acc['file']} | Exp: {acc['expiry']}\033[0m")
+    print("\033[1;36m" + "=" * (len(t['list_title']) + 36) + "\033[0m")
+    print(f"\033[1;32m{t['total']}: {len(accounts)}\033[0m\n")
 
 def ui_add_account(lang="id"):
+    clear_screen()
     t = TEXTS[lang]
-    print(f"\n➕ {t['add_intro']}")
+    print(get_cat_banner(lang))
+    print(f"\n\033[1;32m➕ {t['add_intro']}\033[0m")
     
     if os.path.exists(ACTIVE_TOKEN):
         curr_email = get_email_from_token_file(ACTIVE_TOKEN)
@@ -232,7 +256,7 @@ def ui_add_account(lang="id"):
     print(t["add_step3"])
     print()
 
-    input(t["add_press"])
+    input(f"\033[1;36m{t['add_press']}\033[0m")
     try:
         subprocess.run(["agy"])
     except Exception as e:
@@ -262,9 +286,9 @@ def ui_remove_account(lang="id"):
     if not accounts:
         return
 
-    choice = input(t["del_prompt"]).strip()
+    choice = input(f"\033[1;33m{t['del_prompt']}\033[0m").strip()
     if not choice or choice == "0":
-        print(t["del_cancel"])
+        print(f"\033[2m{t['del_cancel']}\033[0m")
         return
 
     target = None
@@ -282,12 +306,12 @@ def ui_remove_account(lang="id"):
         print(f"❌ {t['del_not_found']}")
         return
 
-    confirm = input(t["del_confirm"].format(target["email"])).strip().lower()
+    confirm = input(f"\033[1;31m{t['del_confirm'].format(target['email'])}\033[0m").strip().lower()
     if confirm in ("y", "yes", "ya"):
         was_active = target["is_active"]
         try:
             os.remove(target["path"])
-            print(f"✅ {t['del_success'].format(target['email'])}")
+            print(f"✅ \033[1;32m{t['del_success'].format(target['email'])}\033[0m")
             if was_active:
                 remaining = get_accounts()
                 if remaining:
@@ -297,50 +321,59 @@ def ui_remove_account(lang="id"):
         except Exception as e:
             print(f"Error removing account: {e}")
     else:
-        print(t["del_cancel"])
+        print(f"\033[2m{t['del_cancel']}\033[0m")
 
 def interactive_loop():
-    # 1. Pilih Bahasa
-    print("\n" + "=" * 45)
-    print("      ANTIGRAVITY ACCOUNT ROTATION CLI")
-    print("=" * 45)
-    print("Pilih Bahasa / Select Language:")
-    print(" 1. Bahasa Indonesia")
-    print(" 2. English")
-    print("\033[2m(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)\033[0m")
-    lang_choice = input("\nPilih [1/2] (default: 1): ").strip()
+    # 1. Pilih Bahasa (Layar bersih)
+    clear_screen()
+    print(get_cat_banner("id"))
+    print("\n\033[1;36mPilih Bahasa / Select Language:\033[0m")
+    print(" \033[1;33m1.\033[0m 🇮🇩 Bahasa Indonesia")
+    print(" \033[1;33m2.\033[0m 🇬🇧 English")
+    print("\033[2m───────────────────────────────────────────────\033[0m")
+    print("\033[2m💡 Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit\033[0m")
+    print("\033[2m───────────────────────────────────────────────\033[0m")
+    lang_choice = input("👉 Pilih [1/2] (default: 1): ").strip()
     lang = "en" if lang_choice == "2" else "id"
 
     t = TEXTS[lang]
+    err_msg = ""
 
-    # 2. Menu Utama
+    # 2. Menu Utama (Setiap aksi membersihkan layar agar tetap di tempat)
     while True:
-        print("\n" + "=" * 45)
-        print(f"               {t['menu_title']}")
-        print("=" * 45)
-        print(f" 1. {t['opt1']}")
-        print(f" 2. {t['opt2']}")
-        print(f" 3. {t['opt3']}")
-        print(f" 4. {t['opt4']}")
-        print("-" * 45)
+        clear_screen()
+        print(get_cat_banner(lang))
+        print(f"\n\033[1;34m{t['menu_title']}\033[0m")
+        print("\033[1;34m───────────────────────────────────────────────\033[0m")
+        print(f" \033[1;37m1.\033[0m {t['opt1']}")
+        print(f" \033[1;37m2.\033[0m {t['opt2']}")
+        print(f" \033[1;37m3.\033[0m {t['opt3']}")
+        print(f" \033[1;37m4.\033[0m {t['opt4']}")
+        print("\033[2m───────────────────────────────────────────────\033[0m")
         print(f" {t['ctrl_c_hint']}")
-        print("-" * 45)
+        print("\033[2m───────────────────────────────────────────────\033[0m")
+        if err_msg:
+            print(f"\033[1;31m❌ {err_msg}\033[0m\n")
+            err_msg = ""
+
         choice = input(t["choose"]).strip()
 
         if choice == "1":
             ui_add_account(lang)
-            input(f"\n{t['press_enter']}")
+            input(f"\n\033[2m{t['press_enter']}\033[0m")
         elif choice == "2":
             ui_remove_account(lang)
-            input(f"\n{t['press_enter']}")
+            input(f"\n\033[2m{t['press_enter']}\033[0m")
         elif choice == "3":
             print_list(lang)
-            input(f"{t['press_enter']}")
+            input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "4":
-            print("Sampai jumpa! / Goodbye!\n")
+            clear_screen()
+            print(get_cat_banner(lang))
+            print("\n👋 Sampai jumpa! / Goodbye!\n")
             break
         else:
-            print(f"\n❌ {t['invalid']}")
+            err_msg = t["invalid"]
 
 # ----------------- CLI Argument Handler -----------------
 
@@ -393,7 +426,8 @@ def main():
             interactive_loop()
 
     except (KeyboardInterrupt, EOFError):
-        print("\n\n👋 Keluar dari program (Ctrl+C). Sampai jumpa! / Goodbye!\n")
+        clear_screen()
+        print("\n👋 Keluar dari program (Ctrl+C). Sampai jumpa! / Goodbye!\n")
         sys.exit(0)
 
 if __name__ == "__main__":
