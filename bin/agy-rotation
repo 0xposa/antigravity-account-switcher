@@ -70,7 +70,6 @@ def sync_active_token():
     if not active_email:
         return
     target_file = os.path.join(ACCOUNTS_DIR, f"{active_email}.token")
-    # Only copy if active token is valid and exists
     try:
         shutil.copy2(ACTIVE_TOKEN, target_file)
     except Exception:
@@ -107,7 +106,6 @@ def switch_account_internal(identifier):
     if not target:
         return False, f"Akun '{identifier}' tidak ditemukan."
 
-    # Sync current before switching
     sync_active_token()
     shutil.copy2(target["path"], ACTIVE_TOKEN)
     return True, target["email"]
@@ -117,7 +115,6 @@ def rotate_account_internal():
     if len(accounts) < 2:
         return False, "Minimal perlu 2 akun untuk rotasi."
     
-    # Sync current token first
     sync_active_token()
 
     active_email = get_email_from_token_file(ACTIVE_TOKEN)
@@ -145,6 +142,8 @@ TEXTS = {
         "choose": "Pilih menu [1-4]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
         "press_enter": "Tekan [Enter] untuk kembali ke menu...",
+        "ctrl_c_hint": "💡 Tekan Ctrl+C untuk keluar kapan saja",
+        "bye": "👋 Keluar dari program (Ctrl+C). Sampai jumpa!\n",
         "list_title": "DAFTAR AKUN ANTIGRAVITY",
         "no_acc": "Belum ada akun di dalam daftar.",
         "active_tag": "[AKTIF]",
@@ -175,6 +174,8 @@ TEXTS = {
         "choose": "Select option [1-4]: ",
         "invalid": "Invalid selection. Please try again.",
         "press_enter": "Press [Enter] to return to menu...",
+        "ctrl_c_hint": "💡 Press Ctrl+C to exit anytime",
+        "bye": "👋 Exiting program (Ctrl+C). Goodbye!\n",
         "list_title": "ANTIGRAVITY ACCOUNTS LIST",
         "no_acc": "No accounts stored in the pool.",
         "active_tag": "[ACTIVE]",
@@ -216,7 +217,6 @@ def ui_add_account(lang="id"):
     t = TEXTS[lang]
     print(f"\n➕ {t['add_intro']}")
     
-    # Backup current active account into pool
     if os.path.exists(ACTIVE_TOKEN):
         curr_email = get_email_from_token_file(ACTIVE_TOKEN)
         curr_name = curr_email if curr_email else "current_account"
@@ -307,6 +307,7 @@ def interactive_loop():
     print("Pilih Bahasa / Select Language:")
     print(" 1. Bahasa Indonesia")
     print(" 2. English")
+    print("\033[2m(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)\033[0m")
     lang_choice = input("\nPilih [1/2] (default: 1): ").strip()
     lang = "en" if lang_choice == "2" else "id"
 
@@ -321,6 +322,8 @@ def interactive_loop():
         print(f" 2. {t['opt2']}")
         print(f" 3. {t['opt3']}")
         print(f" 4. {t['opt4']}")
+        print("-" * 45)
+        print(f" {t['ctrl_c_hint']}")
         print("-" * 45)
         choice = input(t["choose"]).strip()
 
@@ -342,51 +345,56 @@ def interactive_loop():
 # ----------------- CLI Argument Handler -----------------
 
 def main():
-    if len(sys.argv) == 1:
-        interactive_loop()
-        return
+    try:
+        if len(sys.argv) == 1:
+            interactive_loop()
+            return
 
-    arg1 = sys.argv[1].lower()
+        arg1 = sys.argv[1].lower()
 
-    if arg1 in ("--rotate", "rotate"):
-        ok, res = rotate_account_internal()
-        if ok:
-            print(f"OK:{res}")
+        if arg1 in ("--rotate", "rotate"):
+            ok, res = rotate_account_internal()
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--switch", "switch"):
+            if len(sys.argv) < 3:
+                print("ERR:Target account required", file=sys.stderr)
+                sys.exit(1)
+            ok, res = switch_account_internal(sys.argv[2])
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--list-json", "list-json"):
+            sync_active_token()
+            accs = get_accounts()
+            print(json.dumps(accs, indent=2))
             sys.exit(0)
-        else:
-            print(f"ERR:{res}", file=sys.stderr)
-            sys.exit(1)
 
-    elif arg1 in ("--switch", "switch"):
-        if len(sys.argv) < 3:
-            print("ERR:Target account required", file=sys.stderr)
-            sys.exit(1)
-        ok, res = switch_account_internal(sys.argv[2])
-        if ok:
-            print(f"OK:{res}")
+        elif arg1 in ("--list", "list"):
+            print_list("id")
             sys.exit(0)
+
+        elif arg1 in ("--active-email", "active-email"):
+            sync_active_token()
+            email = get_email_from_token_file(ACTIVE_TOKEN)
+            print(email or "None")
+            sys.exit(0)
+
         else:
-            print(f"ERR:{res}", file=sys.stderr)
-            sys.exit(1)
+            interactive_loop()
 
-    elif arg1 in ("--list-json", "list-json"):
-        sync_active_token()
-        accs = get_accounts()
-        print(json.dumps(accs, indent=2))
+    except (KeyboardInterrupt, EOFError):
+        print("\n\n👋 Keluar dari program (Ctrl+C). Sampai jumpa! / Goodbye!\n")
         sys.exit(0)
-
-    elif arg1 in ("--list", "list"):
-        print_list("id")
-        sys.exit(0)
-
-    elif arg1 in ("--active-email", "active-email"):
-        sync_active_token()
-        email = get_email_from_token_file(ACTIVE_TOKEN)
-        print(email or "None")
-        sys.exit(0)
-
-    else:
-        interactive_loop()
 
 if __name__ == "__main__":
     main()

@@ -77,6 +77,8 @@ Setelah memilih bahasa, menu utama akan tampil:
  3. Daftar Akun (List account)
  4. Keluar
 ---------------------------------------------
+ 💡 Tekan Ctrl+C untuk keluar kapan saja
+---------------------------------------------
 Pilih menu [1-4]:
 ```
 
@@ -168,6 +170,8 @@ Navigate the Main Menu:
  2. Remove account
  3. List account
  4. Exit
+---------------------------------------------
+ 💡 Press Ctrl+C to exit anytime
 ---------------------------------------------
 Select option [1-4]:
 ```
