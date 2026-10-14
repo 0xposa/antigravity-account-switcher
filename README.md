@@ -1,4 +1,4 @@
-# 🚀 Antigravity Account Switcher (`agy-switcher`)
+# 🚀 Antigravity Switcher (`agy-switcher`)
 
 > **Solusi Multi-Akun & Rotasi Otomatis saat Limit untuk Google Antigravity CLI (`agy`)**  
 > **Multi-Account Manager & Zero-Interruption Auto-Rotation for Google Antigravity CLI (`agy`)**  
@@ -19,30 +19,30 @@
 # 🇮🇩 Bahasa Indonesia
 
 ## 💡 Latar Belakang & Masalah
-Google Antigravity CLI (`agy`) hanya menyimpan satu sesi login aktif di `~/.gemini/antigravity-cli/antigravity-oauth-token`. Masalah yang sering dihadapi developer:
-1. **Kuota Model Habis / Rate Limit (HTTP 429)**: Model unggulan seperti Claude Opus/Sonnet dan Gemini Pro memiliki batas kuota per akun. Saat limit tercapai, proses coding terhenti.
-2. **Repot Ganti Akun**: Harus keluar, login ulang manual lewat browser, dan kehilangan alur sesi.
+Google Antigravity CLI (`agy`) secara bawaan hanya menyimpan satu sesi login aktif di `~/.gemini/antigravity-cli/antigravity-oauth-token`. Masalah umum yang sering dialami pengguna:
+1. **Batas Kuota / Rate Limit (HTTP 429)**: Model-model unggulan seperti Claude Opus/Sonnet dan Gemini Pro memiliki batas kuota harian per akun Google. Saat batas habis, alur kerja coding langsung terhenti.
+2. **Repot Ganti Akun**: Harus login ulang manual melalui browser, mengetik perintah berulang, dan kehilangan konteks sesi chat.
 
-**Antigravity Account Switcher** menghadirkan manajemen akun terisolasi di Termux dan integrasi skill otonom di dalam Antigravity. Saat kuota habis, akun akan **otomatis berputar (*auto-rotate*) ke akun berikutnya** dan melanjutkan tugas tanpa interupsi!
+**Antigravity Switcher** menyelesaikan masalah ini dengan manajemen multi-akun aman di Termux dan integrasi skill otonom langsung di dalam Antigravity. Saat kuota akun aktif habis, sistem akan **secara otomatis merotasi akun ke akun cadangan yang aktif (`✅ on`) dan melanjutkan tugas tanpa jeda!**
 
 ---
 
 ## ✨ Fitur Utama
-- 📱 **Menu Interaktif Termux (`agy-switcher`)**: UI CLI layar bersih dengan sambutan dan pilihan bahasa (Indonesia & English).
-- ➕ **Tambah Akun Tanpa Logout**: Menambah akun baru tanpa menghapus atau mengeluarkan akun yang sedang aktif.
-- 🗑️ **Hapus Akun**: Kelola dan bersihkan akun yang sudah tidak dipakai dengan mudah.
-- 📋 **Daftar Akun Akurat**: Menampilkan akun yang tersimpan beserta tanda `[AKTIF]` yang akurat dan sinkronisasi otomatis token.
-- 🤖 **Skill `/model-switcher` di Antigravity**: Memilih model AI sekaligus mengaktifkan proteksi rotasi otomatis saat terkena batas kuota/limit (HTTP 429).
-- 🔄 **Skill `/account-switcher` di Antigravity**: Dialog interaktif untuk memilih dan berpindah akun langsung dari dalam chat.
+- 📱 **Menu Termux Interaktif (`agy-switcher`)**: Tampilan TUI terminal bersih, banner ASCII keren, tanpa emoji berlebih di menu, serta dukungan dwibahasa (Indonesia & English).
+- ➕ **Tambah Akun Tanpa Gangguan**: Tambahkan akun Google baru tanpa mengeluarkan akun yang sedang aktif.
+- 🗑️ **Hapus Akun**: Bersihkan akun yang sudah tidak diperlukan dengan mudah.
+- 📋 **Daftar Akun Akurat**: Menampilkan daftar akun, status aktif real-time, dan status auto-rotasi (`✅ on` / `⛔ off`).
+- ⚡ **Auto-Rotation Fleksibel**: Anda dapat menentukan akun mana yang berpartisipasi dalam rotasi otomatis (`✅ on`) dan akun mana yang dikecualikan (`⛔ off`).
+- 🤖 **Skill Antigravity Native (`/antigravity-switcher`, `/model-switcher`, `/account-switcher`)**: Tampilan CLI native langsung di chat tanpa pop-up modal `ask_question`.
 
 ---
 
 ## 📦 Cara Instalasi
 
-### Menggunakan Git Clone
+Jalankan perintah berikut di Termux / Linux:
 ```bash
-git clone https://github.com/0xposa/antigravity-account-switcher.git
-cd antigravity-account-switcher
+git clone https://github.com/0xposa/antigravity-switcher.git
+cd antigravity-switcher
 bash install.sh
 ```
 
@@ -51,36 +51,12 @@ bash install.sh
 ## 🛠️ Panduan Penggunaan
 
 ### 1. Di Terminal Termux (`agy-switcher`)
-Jalankan perintah berikut di terminal:
+Jalankan perintah berikut:
 ```bash
 agy-switcher
 ```
-Anda akan disambut dengan pilihan bahasa:
-```text
- █████╗  ██████╗ ██╗   ██╗
-██╔══██╗██╔════╝ ╚██╗ ██╔╝
-███████║██║  ███╗ ╚████╔╝ 
-██╔══██║██║   ██║  ╚██╔╝  
-██║  ██║╚██████╔╝   ██║   
-╚═╝  ╚═╝ ╚═════╝    ╚═╝   
-███████╗██╗    ██╗██╗████████╗ ██████╗██╗  ██╗███████╗██████╗ 
-██╔════╝██║    ██║██║╚══██╔══╝██╔════╝██║  ██║██╔════╝██╔══██╗
-███████╗██║ █╗ ██║██║   ██║   ██║     ███████║█████╗  ██████╔╝
-╚════██║██║███╗██║██║   ██║   ██║     ██╔══██║██╔══╝  ██╔══██╗
-███████║╚███╔███╔╝██║   ██║   ╚██████╗██║  ██║███████╗██║  ██║
-╚══════╝ ╚══╝╚══╝ ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                    Twitter: @0xposa
 
-Pilih Bahasa / Select Language:
- 1. Bahasa Indonesia
- 2. English
-─────────────────────────────────────────────
-(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)
-─────────────────────────────────────────────
-Pilih [1/2] (default: 1):
-```
-
-Setelah memilih bahasa, menu utama akan tampil:
+Menu utama akan tampil bersih:
 ```text
  █████╗  ██████╗ ██╗   ██╗
 ██╔══██╗██╔════╝ ╚██╗ ██╔╝
@@ -108,31 +84,54 @@ Setelah memilih bahasa, menu utama akan tampil:
 Pilih menu [1-4]:
 ```
 
-* **1. Tambah Akun**: Menyiapkan login akun Google baru. Token akun lama Anda diamankan otomatis, lalu browser dibuka untuk login akun baru.
-* **2. Hapus Akun**: Memilih nomor atau email akun yang ingin dihapus dari daftar.
-* **3. Daftar Akun**: Melihat semua akun yang tersimpan, masa kedaluwarsa, dan siapa akun yang sedang `[AKTIF]`.
+* **1. Tambah Akun**: Mengamankan token aktif saat ini, membuka browser untuk login akun Google baru, dan menyimpannya ke pool akun.
+* **2. Hapus Akun**: Memilih akun yang ingin dihapus dari daftar penyimpanan.
+* **3. Daftar Akun**: Melihat semua akun yang tersimpan beserta tanda `[AKTIF]` dan status auto-rotasinya.
 
 ---
 
-### 2. Di Dalam Antigravity (Menggunakan Slash Command `/`)
+### 2. Di Dalam Antigravity CLI (Slash Commands)
 
-Pengelolaan model dan perpindahan akun saat coding dilakukan sepenuhnya di dalam Antigravity:
+Gunakan slash commands berikut langsung di dalam sesi prompt Antigravity:
 
-#### 🔹 `/model-switcher` (atau `/model-rotasi`)
-Gunakan perintah ini di chat Antigravity:
+#### 🔹 `/antigravity-switcher` atau `/model-switcher`
+Menampilkan status akun rotasi dan daftar model yang tersedia:
 ```text
-/model-switcher
+Chose model rotation 
+
+account active (3 accounts installed, 2 enabled for auto-rotation)
+
+user1@gmail.com = ✅ on
+user2@gmail.com = ⛔ off
+user3@gmail.com = ✅ on
+
+  Search:
+          ────────────────────
+
+> Gemini 3.8 Flash             (current)
+  Claude Sonnet 4.6 (Thinking)
+  Claude Opus 4.6 (Thinking)
+  GPT-OSS 120B (Medium)
+  Gemini 4 Argon
+
+  Effort  ◂        ●━━━━━━━━━━━━━━◉──────────────○        ▸
+                        low                 medium                       high
 ```
-1. Akan muncul pilihan model AI (Gemini 3.8 Flash, Gemini 3.8 Pro, Claude 3.7 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku).
-2. Setelah model dipilih, **Proteksi Auto-Rotate Limit langsung aktif**:
-   * Jika sewaktu-waktu model terkena rate limit / kuota habis (`HTTP 429` / `ResourceExhausted`), AI akan **langsung otomatis menjalankan rotasi akun ke akun berikutnya** dan melanjutkan tugas tanpa meminta Anda mengganti akun secara manual!
+
+- **Rotasi Otomatis (Zero Interruption)**:
+  Jika model terkena `HTTP 429` (Rate limit / Quota exceeded / ResourceExhausted), asisten AI akan **otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang bertanda `✅ on`, lalu melanjutkan tugas Anda tanpa jeda!
 
 #### 🔹 `/account-switcher`
-Gunakan perintah ini untuk berpindah akun secara manual lewat chat:
+Menampilkan daftar akun tersimpan untuk berpindah akun secara instan:
 ```text
-/account-switcher
+chose account 
+
+> user1@gmail.com (current)
+  user2@gmail.com
+  user3@gmail.com
 ```
-Antigravity akan menampilkan daftar akun yang tersimpan. Cukup pilih nomor atau akun yang diinginkan untuk langsung mengaktifkannya.
+
+Cukup ketikkan nomor atau email akun yang diinginkan untuk langsung mengaktifkannya.
 
 ---
 ---
@@ -140,29 +139,30 @@ Antigravity akan menampilkan daftar akun yang tersimpan. Cukup pilih nomor atau 
 # 🇬🇧 English
 
 ## 💡 Background & Overview
-By default, the Google Antigravity CLI (`agy`) only stores a single active session in `~/.gemini/antigravity-cli/antigravity-oauth-token`. Common hurdles faced by developers:
-1. **Quota Limits & Rate Limits (HTTP 429)**: High-tier reasoning models like Claude Opus/Sonnet and Gemini Pro have per-account quotas. When limits are reached, your workflow stops.
-2. **Tedious Manual Switching**: Requiring manual logout and browser re-authentication, losing coding context.
+Google Antigravity CLI (`agy`) natively only retains a single active login session in `~/.gemini/antigravity-cli/antigravity-oauth-token`. Developers frequently encounter two friction points:
+1. **Quota Limits & Rate Limits (HTTP 429)**: Premier reasoning models (such as Claude Opus/Sonnet and Gemini Pro) have per-account daily quotas. When limits are exceeded, development freezes.
+2. **Tedious Re-authentication**: Manually logging out, opening browser prompts, and resetting sessions disrupts the developer flow.
 
-**Antigravity Account Switcher** solves this by providing isolated account storage in Termux and autonomous skill integration inside Antigravity. When quota runs out, it **automatically rotates to the next account** and resumes your coding task seamlessly!
+**Antigravity Switcher** bridges this gap by offering isolated multi-account vault storage in Termux paired with autonomous agent skills inside Antigravity. When a quota exhaustion event occurs, credentials are **automatically rotated to the next available account marked `✅ on`, resuming tasks seamlessly with zero interruptions!**
 
 ---
 
 ## ✨ Key Features
-- 📱 **Interactive Termux Menu (`agy-switcher`)**: Clean CLI menu with welcome greeting and language selection (Indonesian & English).
-- ➕ **Add Accounts Safely**: Add new accounts without logging out of your current session.
-- 🗑️ **Remove Accounts**: Clean up old or unused accounts from your pool.
-- 📋 **Accurate Account Listing**: Shows all stored accounts with accurate `[ACTIVE]` indicators and automatic token refresh syncing.
-- 🤖 **`/model-switcher` Skill inside Antigravity**: Choose AI models and activate zero-interruption quota auto-failover.
-- 🔄 **`/account-switcher` Skill inside Antigravity**: Interactive modal to switch accounts right from the chat prompt.
+- 📱 **Interactive Termux TUI (`agy-switcher`)**: Single-screen, clean terminal UI with ASCII header, bilingual prompts, and no emoji clutter in menu items.
+- ➕ **Seamless Account Addition**: Add additional Google accounts without disturbing your active session credentials.
+- 🗑️ **Account Deletion**: Easily prune inactive or decommissioned accounts.
+- 📋 **Live Account Listing**: Inspect account pools with real-time `[ACTIVE]` indicators and auto-rotation statuses (`✅ on` / `⛔ off`).
+- ⚡ **Granular Auto-Rotation Pool**: Configure which accounts are active for failover (`✅ on`) and which are kept standby/manual (`⛔ off`).
+- 🤖 **Native Antigravity Skills (`/antigravity-switcher`, `/model-switcher`, `/account-switcher`)**: Renders native CLI layouts directly into the chat stream without GUI popups.
 
 ---
 
 ## 📦 Installation
 
+Run the following commands in Termux or Linux:
 ```bash
-git clone https://github.com/0xposa/antigravity-account-switcher.git
-cd antigravity-account-switcher
+git clone https://github.com/0xposa/antigravity-switcher.git
+cd antigravity-switcher
 bash install.sh
 ```
 
@@ -171,36 +171,12 @@ bash install.sh
 ## 🛠️ Usage Guide
 
 ### 1. In Termux Terminal (`agy-switcher`)
-Launch the manager in Termux:
+Execute:
 ```bash
 agy-switcher
 ```
-Select your preferred language:
-```text
- █████╗  ██████╗ ██╗   ██╗
-██╔══██╗██╔════╝ ╚██╗ ██╔╝
-███████║██║  ███╗ ╚████╔╝ 
-██╔══██║██║   ██║  ╚██╔╝  
-██║  ██║╚██████╔╝   ██║   
-╚═╝  ╚═╝ ╚═════╝    ╚═╝   
-███████╗██╗    ██╗██╗████████╗ ██████╗██╗  ██╗███████╗██████╗ 
-██╔════╝██║    ██║██║╚══██╔══╝██╔════╝██║  ██║██╔════╝██╔══██╗
-███████╗██║ █╗ ██║██║   ██║   ██║     ███████║█████╗  ██████╔╝
-╚════██║██║███╗██║██║   ██║   ██║     ██╔══██║██╔══╝  ██╔══██╗
-███████║╚███╔███╔╝██║   ██║   ╚██████╗██║  ██║███████╗██║  ██║
-╚══════╝ ╚══╝╚══╝ ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                    Twitter: @0xposa
 
-Pilih Bahasa / Select Language:
- 1. Bahasa Indonesia
- 2. English
-─────────────────────────────────────────────
-(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)
-─────────────────────────────────────────────
-Select [1/2] (default: 1): 2
-```
-
-Navigate the Main Menu:
+Select your language preference and access the main menu:
 ```text
  █████╗  ██████╗ ██╗   ██╗
 ██╔══██╗██╔════╝ ╚██╗ ██╔╝
@@ -228,31 +204,54 @@ Navigate the Main Menu:
 Select option [1-4]:
 ```
 
-* **1. Add account**: Safeguards current credentials, launches `agy` for new Google login, and saves the new account into the pool.
-* **2. Remove account**: Select an account number or email to remove from the pool.
-* **3. List account**: Inspect all saved accounts, expiration times, and the currently active account.
+* **1. Add account**: Safeguards existing tokens, initializes Google OAuth flow via `agy`, and stores new tokens in the account directory.
+* **2. Remove account**: Select and delete an account from the pool.
+* **3. List account**: Review all registered accounts, token expiry, active session, and rotation status.
 
 ---
 
-### 2. Inside Antigravity (Using Slash Commands `/`)
+### 2. Inside Antigravity CLI (Slash Commands)
 
-Model selection and active account switching during development are managed inside Antigravity:
+Use the integrated slash commands inside your Antigravity chat:
 
-#### 🔹 `/model-switcher`
-Type this command in the Antigravity chat:
+#### 🔹 `/antigravity-switcher` or `/model-switcher`
+Inspect current rotation candidates and choose available AI models:
 ```text
-/model-switcher
+Chose model rotation 
+
+account active (3 accounts installed, 2 enabled for auto-rotation)
+
+user1@gmail.com = ✅ on
+user2@gmail.com = ⛔ off
+user3@gmail.com = ✅ on
+
+  Search:
+          ────────────────────
+
+> Gemini 3.8 Flash             (current)
+  Claude Sonnet 4.6 (Thinking)
+  Claude Opus 4.6 (Thinking)
+  GPT-OSS 120B (Medium)
+  Gemini 4 Argon
+
+  Effort  ◂        ●━━━━━━━━━━━━━━◉──────────────○        ▸
+                        low                 medium                       high
 ```
-1. Select your desired AI model (Gemini 3.8 Flash, Gemini 3.8 Pro, Claude 3.7 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku).
-2. **Zero-Interruption Auto-Rotate is activated**:
-   * If the chosen model hits rate limits or quota exhaustion (`HTTP 429` / `ResourceExhausted`), the AI will **automatically rotate credentials to the next Google account in the pool** and continue your task immediately without manual intervention!
+
+- **Zero-Interruption Auto-Rotation**:
+  When a model triggers `HTTP 429` (Quota exceeded / Rate limit), Antigravity executes `agy-switcher --rotate` in the background, rotating credentials strictly across accounts marked `✅ on`, and resumes work instantly without manual action.
 
 #### 🔹 `/account-switcher`
-Type this command to switch accounts on demand:
+Display registered accounts and switch active sessions on the fly:
 ```text
-/account-switcher
+chose account 
+
+> user1@gmail.com (current)
+  user2@gmail.com
+  user3@gmail.com
 ```
-Antigravity will display an interactive list of all stored accounts. Pick your target account to switch immediately.
+
+Respond with your target account's index or email to switch.
 
 ---
 
@@ -261,7 +260,7 @@ Created & maintained by:
 * **Twitter / X**: [@0xposa](https://x.com/0xposa)
 * **GitHub**: [@0xposa](https://github.com/0xposa)
 
-Don't forget to star ⭐ this repository if it helps your daily coding workflow!
+Don't forget to star ⭐ this repository if it helps your daily workflow!
 
 ---
 

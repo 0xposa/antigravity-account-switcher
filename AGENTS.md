@@ -6,14 +6,16 @@
      ```bash
      agy-switcher --rotate
      ```
-  2. Laporkan secara singkat ke user email akun baru yang aktif.
+  2. Laporkan secara singkat ke user email akun baru yang aktif:
+     > 🔄 *Quota limit reached. Auto-rotated to account: `<new_email>`. Resuming task...*
   3. Langsung lanjutkan tugas atau panggilan tools yang tertunda tanpa meminta user mengganti akun secara manual.
 
-## 2. Slash Commands Handling
-- **`/model-switcher`** (atau `/model-rotasi`):
-  Tampilkan interaktif modal pilihan model menggunakan tool `ask_question`. Update model di `~/.gemini/antigravity-cli/settings.json` saat dipilih.
-- **`/account-switcher`**:
-  Ambil daftar akun dengan `agy-switcher --list-json` lalu tampilkan interaktif modal pilihan akun menggunakan tool `ask_question`. Jalankan `agy-switcher --switch "<pilihan>"` setelah user memilih.
+## 2. Slash Commands Handling (`/antigravity-switcher`, `/model-switcher`, `/account-switcher`)
+- **DILARANG MENGGUNAKAN TOOL `ask_question`**. Tampilkan antarmuka native text CLI secara langsung sesuai format di skill `antigravity-switcher`.
+- **`/model-switcher`** (atau `/model-rotation`, `/antigravity-switcher`):
+  Ambil status real-time dengan `agy-switcher --status-json`, lalu tampilkan layout pilihan model dan status akun aktif (✅ on / ⛔ off) secara langsung.
+- **`/account-switcher`** (atau `/switch-account`):
+  Ambil daftar akun dengan `agy-switcher --list-json` lalu tampilkan daftar akun secara langsung. Jalankan `agy-switcher --switch "<pilihan>"` setelah user memilih.
 
 ## 3. Termux Management
 - Pengelolaan akun di luar Antigravity (menambah akun baru atau menghapus akun) dilakukan melalui CLI Termux:

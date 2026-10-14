@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Installer for antigravity-account-switcher & auto-rotation
+# Installer for antigravity-switcher & auto-rotation
 # Author: @0xposa (Twitter / X)
 set -e
 
 echo -e "\033[1;34m========================================================\033[0m"
-echo -e "\033[1;32m       Installing Antigravity Account Switcher          \033[0m"
+echo -e "\033[1;32m          Installing Antigravity Switcher               \033[0m"
 echo -e "       Author: \033[1;36m@0xposa\033[0m (https://x.com/0xposa)        "
 echo -e "\033[1;34m========================================================\033[0m"
 
@@ -41,13 +41,16 @@ fi
 # Pasang Custom Skills ke Antigravity
 SKILLS_DIR_GLOBAL="$HOME/.gemini/config/skills"
 SKILLS_DIR_LOCAL="$HOME/.agents/skills"
-mkdir -p "$SKILLS_DIR_GLOBAL/account-switcher" "$SKILLS_DIR_GLOBAL/model-switcher"
-mkdir -p "$SKILLS_DIR_LOCAL/account-switcher" "$SKILLS_DIR_LOCAL/model-switcher"
+SKILLS_DIR_CLI="$HOME/.gemini/antigravity-cli/skills"
 
-cp "$SCRIPT_DIR/skills/account-switcher/SKILL.md" "$SKILLS_DIR_GLOBAL/account-switcher/SKILL.md"
-cp "$SCRIPT_DIR/skills/account-switcher/SKILL.md" "$SKILLS_DIR_LOCAL/account-switcher/SKILL.md"
-cp "$SCRIPT_DIR/skills/model-switcher/SKILL.md" "$SKILLS_DIR_GLOBAL/model-switcher/SKILL.md"
-cp "$SCRIPT_DIR/skills/model-switcher/SKILL.md" "$SKILLS_DIR_LOCAL/model-switcher/SKILL.md"
+for skill_name in antigravity-switcher account-switcher model-switcher model-rotation switch-account; do
+  if [ -d "$SCRIPT_DIR/skills/$skill_name" ]; then
+    mkdir -p "$SKILLS_DIR_GLOBAL/$skill_name" "$SKILLS_DIR_LOCAL/$skill_name" "$SKILLS_DIR_CLI/$skill_name"
+    cp -r "$SCRIPT_DIR/skills/$skill_name/"* "$SKILLS_DIR_GLOBAL/$skill_name/"
+    cp -r "$SCRIPT_DIR/skills/$skill_name/"* "$SKILLS_DIR_LOCAL/$skill_name/"
+    cp -r "$SCRIPT_DIR/skills/$skill_name/"* "$SKILLS_DIR_CLI/$skill_name/"
+  fi
+done
 
 # Pasang Workspace Rules (AGENTS.md & GEMINI.md)
 if [ -f "$SCRIPT_DIR/AGENTS.md" ]; then
@@ -59,5 +62,5 @@ fi
 
 echo -e "\n\033[1;32m✅ Instalasi Berhasil!\033[0m"
 echo -e "Di Termux: jalankan \033[1;33magy-switcher\033[0m untuk menu interaktif (Add/Remove/List Account)."
-echo -e "Di Antigravity: gunakan \033[1;33m/model-switcher\033[0m atau \033[1;33m/account-switcher\033[0m."
+echo -e "Di Antigravity: gunakan \033[1;33m/antigravity-switcher\033[0m, \033[1;33m/model-switcher\033[0m, atau \033[1;33m/account-switcher\033[0m."
 echo -e "Follow creator on X: \033[1;36mhttps://x.com/0xposa\033[0m\n"
