@@ -85,14 +85,14 @@ Setelah memilih bahasa, menu utama akan tampil:
 
                   MENU UTAMA
 ─────────────────────────────────────────────
- 1. ➕ Tambah Akun (Add account)
- 2. 🗑️  Hapus Akun (Remove account)
- 3. 📜 Daftar Akun (List account)
- 4. 🚪 Keluar (Exit)
+ 1. Tambah Akun (Add account)
+ 2. Hapus Akun (Remove account)
+ 3. Daftar Akun (List account)
+ 4. Keluar (Exit)
 ─────────────────────────────────────────────
- 💡 Tekan Ctrl+C untuk keluar kapan saja
+ Tekan Ctrl+C untuk keluar kapan saja
 ─────────────────────────────────────────────
-👉 Pilih menu [1-4]:
+Pilih menu [1-4]:
 ```
 
 * **1. Tambah Akun**: Menyiapkan login akun Google baru. Token akun lama Anda diamankan otomatis, lalu browser dibuka untuk login akun baru.
@@ -192,14 +192,14 @@ Navigate the Main Menu:
 
                   MAIN MENU
 ─────────────────────────────────────────────
- 1. ➕ Add account
- 2. 🗑️  Remove account
- 3. 📜 List account
- 4. 🚪 Exit
+ 1. Add account
+ 2. Remove account
+ 3. List account
+ 4. Exit
 ─────────────────────────────────────────────
- 💡 Press Ctrl+C to exit anytime
+ Press Ctrl+C to exit anytime
 ─────────────────────────────────────────────
-👉 Select option [1-4]:
+Select option [1-4]:
 ```
 
 * **1. Add account**: Safeguards current credentials, launches `agy` for new Google login, and saves the new account into the pool.
