@@ -11,6 +11,8 @@ HOME = os.environ.get("HOME", "/data/data/com.termux/files/home")
 AGY_DIR = os.path.join(HOME, ".gemini", "antigravity-cli")
 ACTIVE_TOKEN = os.path.join(AGY_DIR, "antigravity-oauth-token")
 ACCOUNTS_DIR = os.path.join(AGY_DIR, "accounts")
+ROTATION_CONFIG = os.path.join(AGY_DIR, "rotation_config.json")
+SETTINGS_FILE = os.path.join(AGY_DIR, "settings.json")
 
 os.makedirs(ACCOUNTS_DIR, exist_ok=True)
 
@@ -18,9 +20,7 @@ os.makedirs(ACCOUNTS_DIR, exist_ok=True)
 
 def clear_screen():
     """Clear terminal screen and scrollback buffer completely."""
-    # os.system("clear") clears the visible screen and scrollback in Termux
     os.system("clear")
-    # ANSI escape guarantee
     sys.stdout.write("\033[2J\033[H\033[3J")
     sys.stdout.flush()
 
@@ -73,20 +73,56 @@ def get_expiry(filepath):
         pass
     return "N/A"
 
-def get_accounts():
+def get_rotation_config():
+    cfg = {}
+    if os.path.exists(ROTATION_CONFIG):
+        try:
+            with open(ROTATION_CONFIG, "r", encoding="utf-8") as f:
+                cfg = json.load(f).get("accounts", {})
+        except Exception:
+            cfg = {}
+    # Ensure all stored accounts are registered, default to True (ON)
+    accounts = get_accounts(load_cfg=False)
+    updated = False
+    for acc in accounts:
+        if acc["email"] not in cfg:
+            cfg[acc["email"]] = True
+            updated = True
+    if updated or not os.path.exists(ROTATION_CONFIG):
+        save_rotation_config(cfg)
+    return cfg
+
+def save_rotation_config(cfg):
+    try:
+        with open(ROTATION_CONFIG, "w", encoding="utf-8") as f:
+            json.dump({"accounts": cfg}, f, indent=2)
+    except Exception:
+        pass
+
+def toggle_rotation_account(email):
+    cfg = get_rotation_config()
+    current = cfg.get(email, True)
+    cfg[email] = not current
+    save_rotation_config(cfg)
+    return cfg[email]
+
+def get_accounts(load_cfg=True):
     files = sorted([f for f in os.listdir(ACCOUNTS_DIR) if f.endswith(".token")])
     accs = []
     active_email = get_email_from_token_file(ACTIVE_TOKEN)
+    rot_cfg = get_rotation_config() if load_cfg else {}
     for f in files:
         path = os.path.join(ACCOUNTS_DIR, f)
         email = get_email_from_token_file(path) or f[:-6]
         is_curr = (active_email is not None and email.lower() == active_email.lower())
+        auto_rotate = rot_cfg.get(email, True) if load_cfg else True
         accs.append({
             "file": f,
             "path": path,
             "email": email,
             "expiry": get_expiry(path),
-            "is_active": is_curr
+            "is_active": is_curr,
+            "auto_rotate": auto_rotate
         })
     return accs
 
@@ -140,20 +176,32 @@ def switch_account_internal(identifier):
 
 def rotate_account_internal():
     accounts = get_accounts()
-    if len(accounts) < 2:
-        return False, "Minimal perlu 2 akun untuk rotasi."
+    if not accounts:
+        return False, "Belum ada akun di daftar."
     
     sync_active_token()
+    rot_cfg = get_rotation_config()
+
+    # Filter only accounts enabled for auto-rotation (auto_rotate == True)
+    enabled_accounts = [acc for acc in accounts if rot_cfg.get(acc["email"], True)]
+    if not enabled_accounts:
+        return False, "Semua akun disetel OFF dalam pool auto-rotation."
+
+    if len(enabled_accounts) == 1:
+        # Switch to the single enabled account if not already active
+        target = enabled_accounts[0]
+        shutil.copy2(target["path"], ACTIVE_TOKEN)
+        return True, target["email"]
 
     active_email = get_email_from_token_file(ACTIVE_TOKEN)
     current_idx = -1
-    for idx, acc in enumerate(accounts):
+    for idx, acc in enumerate(enabled_accounts):
         if active_email and acc["email"].lower() == active_email.lower():
             current_idx = idx
             break
             
-    next_idx = (current_idx + 1) % len(accounts)
-    next_acc = accounts[next_idx]
+    next_idx = (current_idx + 1) % len(enabled_accounts)
+    next_acc = enabled_accounts[next_idx]
     shutil.copy2(next_acc["path"], ACTIVE_TOKEN)
     return True, next_acc["email"]
 
@@ -166,8 +214,9 @@ TEXTS = {
         "opt1": "Tambah Akun (Add account)",
         "opt2": "Hapus Akun (Remove account)",
         "opt3": "Daftar Akun (List account)",
-        "opt4": "Keluar (Exit)",
-        "choose": "Pilih menu [1-4]: ",
+        "opt4": "Kelola Auto-Rotation Pool (Toggle On/Off)",
+        "opt5": "Keluar (Exit)",
+        "choose": "Pilih menu [1-5]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
         "press_enter": "Tekan [Enter] untuk kembali ke menu...",
         "ctrl_c_hint": "Tekan Ctrl+C untuk keluar kapan saja",
@@ -198,8 +247,9 @@ TEXTS = {
         "opt1": "Add account",
         "opt2": "Remove account",
         "opt3": "List account",
-        "opt4": "Exit",
-        "choose": "Select option [1-4]: ",
+        "opt4": "Manage Auto-Rotation Pool (Toggle On/Off)",
+        "opt5": "Exit",
+        "choose": "Select option [1-5]: ",
         "invalid": "Invalid selection. Please try again.",
         "press_enter": "Press [Enter] to return to menu...",
         "ctrl_c_hint": "Press Ctrl+C to exit anytime",
@@ -238,10 +288,43 @@ def print_list(lang="id"):
     else:
         for idx, acc in enumerate(accounts, 1):
             tag = f" \033[1;32m{t['active_tag']}\033[0m" if acc["is_active"] else ""
-            print(f" \033[1;33m{idx}.\033[0m \033[1;37m{acc['email']}\033[0m{tag}")
+            rot_tag = " [Auto-Rotate: ✅ ON]" if acc["auto_rotate"] else " [Auto-Rotate: ⛔ OFF]"
+            print(f" \033[1;33m{idx}.\033[0m \033[1;37m{acc['email']}\033[0m{tag}{rot_tag}")
             print(f"    \033[2mFile: {acc['file']} | Exp: {acc['expiry']}\033[0m")
     print("\033[1;36m" + "=" * (len(t['list_title']) + 36) + "\033[0m")
     print(f"\033[1;32m{t['total']}: {len(accounts)}\033[0m\n")
+
+def ui_manage_rotation_pool(lang="id"):
+    while True:
+        clear_screen()
+        print(get_cat_banner(lang))
+        accounts = get_accounts()
+        title = "KELOLA POOL AUTO-ROTATION" if lang == "id" else "MANAGE AUTO-ROTATION POOL"
+        print(f"\n\033[1;36m================= {title} =================\033[0m")
+        print("\033[2m(Hanya akun dengan status ✅ ON yang akan berputar saat kuota habis)\033[0m\n")
+        
+        for idx, acc in enumerate(accounts, 1):
+            status = "\033[1;32m✅ ON\033[0m" if acc["auto_rotate"] else "\033[1;31m⛔ OFF\033[0m"
+            curr = " \033[1;33m(sedang dipakai)\033[0m" if acc["is_active"] else ""
+            print(f" {idx}. {acc['email']} = {status}{curr}")
+        
+        print("\033[1;36m" + "=" * 48 + "\033[0m")
+        prompt = "Ketik nomor akun untuk toggle ON/OFF (0 untuk kembali): " if lang == "id" else "Enter account number to toggle ON/OFF (0 to return): "
+        choice = input(prompt).strip()
+        
+        if not choice or choice == "0":
+            break
+        if choice.isdigit():
+            idx = int(choice) - 1
+            if 0 <= idx < len(accounts):
+                target = accounts[idx]
+                new_state = toggle_rotation_account(target["email"])
+                st_str = "ON (✅)" if new_state else "OFF (⛔)"
+                print(f"Status akun {target['email']} diubah ke: {st_str}")
+            else:
+                print("Nomor akun tidak valid.")
+        else:
+            print("Masukkan angka nomor akun.")
 
 def ui_add_account(lang="id"):
     clear_screen()
@@ -275,6 +358,10 @@ def ui_add_account(lang="id"):
         name = new_email if new_email else "new_account"
         dest = os.path.join(ACCOUNTS_DIR, f"{name}.token")
         shutil.copy2(ACTIVE_TOKEN, dest)
+        # Register new account in rotation config as enabled
+        rot_cfg = get_rotation_config()
+        rot_cfg[new_email] = True
+        save_rotation_config(rot_cfg)
         print(f"\n\033[1;32m{t['add_success']} {new_email}\033[0m")
     else:
         print(f"\n\033[1;31m{t['add_failed']}\033[0m")
@@ -319,6 +406,11 @@ def ui_remove_account(lang="id"):
         was_active = target["is_active"]
         try:
             os.remove(target["path"])
+            # Remove from rotation config
+            rot_cfg = get_rotation_config()
+            if target["email"] in rot_cfg:
+                del rot_cfg[target["email"]]
+                save_rotation_config(rot_cfg)
             print(f"\033[1;32m{t['del_success'].format(target['email'])}\033[0m")
             if was_active:
                 remaining = get_accounts()
@@ -357,6 +449,7 @@ def interactive_loop():
         print(f" \033[1;37m2.\033[0m {t['opt2']}")
         print(f" \033[1;37m3.\033[0m {t['opt3']}")
         print(f" \033[1;37m4.\033[0m {t['opt4']}")
+        print(f" \033[1;37m5.\033[0m {t['opt5']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
         print(f" {t['ctrl_c_hint']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
@@ -376,6 +469,9 @@ def interactive_loop():
             print_list(lang)
             input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "4":
+            ui_manage_rotation_pool(lang)
+            input(f"\033[2m{t['press_enter']}\033[0m")
+        elif choice == "5":
             clear_screen()
             print(get_cat_banner(lang))
             print("\nSampai jumpa! / Goodbye!\n")
@@ -414,10 +510,45 @@ def main():
                 print(f"ERR:{res}", file=sys.stderr)
                 sys.exit(1)
 
+        elif arg1 in ("--toggle", "toggle"):
+            if len(sys.argv) < 3:
+                print("ERR:Target email required", file=sys.stderr)
+                sys.exit(1)
+            st = toggle_rotation_account(sys.argv[2])
+            print("ON" if st else "OFF")
+            sys.exit(0)
+
         elif arg1 in ("--list-json", "list-json"):
             sync_active_token()
             accs = get_accounts()
             print(json.dumps(accs, indent=2))
+            sys.exit(0)
+
+        elif arg1 in ("--status-json", "status-json"):
+            sync_active_token()
+            accs = get_accounts()
+            current_model = "Gemini 3.8 Flash (Medium)"
+            if os.path.exists(SETTINGS_FILE):
+                try:
+                    with open(SETTINGS_FILE, "r") as f:
+                        current_model = json.load(f).get("model", current_model)
+                except Exception:
+                    pass
+            active_email = get_email_from_token_file(ACTIVE_TOKEN)
+            status_data = {
+                "active_model": current_model,
+                "active_email": active_email,
+                "accounts": accs,
+                "rotation_pool": [a["email"] for a in accs if a["auto_rotate"]],
+                "models": [
+                    "Gemini 3.8 Flash (Medium)",
+                    "Claude Sonnet 4.6 (Thinking)",
+                    "Claude Opus 4.6 (Thinking)",
+                    "GPT-OSS 120B (Medium)",
+                    "Gemini 4 Argon"
+                ]
+            }
+            print(json.dumps(status_data, indent=2))
             sys.exit(0)
 
         elif arg1 in ("--list", "list"):

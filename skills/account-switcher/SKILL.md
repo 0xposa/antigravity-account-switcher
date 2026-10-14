@@ -1,35 +1,29 @@
 ---
-name: account-switcher
-description: Mengalihkan akun Antigravity ke akun lain dalam pool. Tampilkan pilihan akun yang tersimpan secara interaktif setelah command /account-switcher dipilih.
+name: switch-account
+description: Native Antigravity Account Switcher. Use when /switch-account or /account-switcher is triggered.
 ---
 
-# Antigravity Account Switcher Skill
+# Account Switcher Skill
 
-Skill ini digunakan khusus di dalam Antigravity untuk beralih antar akun Google/Antigravity yang tersimpan.
+## MANDATORY AGENT BEHAVIOR:
+- **DO NOT** call the `ask_question` tool.
+- **DO NOT** output conversational filler.
+- Read real accounts dynamically using `agy-switcher --list-json`.
 
-## Alur Eksekusi Saat /account-switcher Dipanggil:
-1. **Dapatkan Daftar Akun:**
-   Jalankan perintah:
-   ```bash
-   agy-switcher --list-json
-   ```
-2. **Tampilkan Opsi Pemilihan Akun:**
-   Gunakan tool `ask_question` untuk menampilkan semua akun yang tersedia.
-   Format opsi:
-   - Berikan tanda `(Aktif)` atau `(Recommended)` pada akun yang sedang aktif atau yang siap dipakai.
-   - Contoh:
-     - `1. nandibaik090120@gmail.com (Aktif)`
-     - `2. nandinurrahman010920@gmail.com`
-     - `3. nanditokulewa@gmail.com`
-     - `4. nearmahkota@gmail.com`
-     - `5. 0xnastar@gmail.com`
+## EXECUTION WHEN /switch-account OR /account-switcher IS TRIGGERED:
+1. Run `agy-switcher --list-json` to retrieve the current accounts.
+2. Output the exact interface format below:
 
-3. **Eksekusi Pengalihan:**
-   Setelah pengguna memilih akun target, jalankan:
-   ```bash
-   agy-switcher --switch "<email_atau_nomor_pilihan>"
-   ```
-4. **Konfirmasi:**
-   Beri tahu pengguna bahwa akun aktif telah berhasil dialihkan ke akun yang dipilih.
+```text
+chose account 
 
-*(Catatan: Penambahan akun baru (Add account) dan penghapusan akun (Remove account) dilakukan melalui menu terminal Termux `agy-switcher`)*.
+> <currently_active_email> (current)
+  <other_account_1>
+  <other_account_2>
+  <other_account_3>
+```
+
+## USER SELECTION HANDLER:
+When user specifies which account to use (e.g. typing email or account number):
+1. Run `agy-switcher --switch "<chosen_account>"`.
+2. Confirm concisely: `Switched active account to: <chosen_account>`.

@@ -1,38 +1,53 @@
 ---
-name: model-switcher
-description: Pilihan model Antigravity dan aktifkan rotasi akun otomatis saat terkena rate limit/kuota habis. Gunakan untuk /model-switcher, /model-rotasi, "model switcher", "ganti model".
+name: model-rotation
+description: Native Antigravity Model & Auto-Rotation Switcher. Use when /model-rotation or /model-switcher is triggered.
 ---
 
-# Model Switcher & Quota Auto-Switch Skill
+# Model Rotation & Quota Auto-Failover Skill
 
-Skill ini digunakan untuk memilih model AI Antigravity serta mengaktifkan proteksi rotasi akun otomatis jika kuota/rate limit model habis.
+## MANDATORY AGENT BEHAVIOR:
+- **DO NOT** call the `ask_question` tool.
+- **DO NOT** output conversational filler (e.g. "Sure!", "How can I help you?", "I am preparing options...").
+- **DO NOT** hardcode fixed model lists or assume static accounts. Always read real accounts and active model dynamically using `agy-switcher --status-json`.
 
-## Alur Eksekusi Saat /model-switcher Dipanggil:
-1. **Tampilkan Pilihan Model:**
-   Gunakan tool `ask_question` untuk menampilkan opsi model Antigravity:
-   - `Gemini 3.8 Flash (Medium)` (Cepat, hemat token, kuota longgar)
-   - `Gemini 3.8 Pro (High)` (Penalaran mendalam, analisis arsitektur)
-   - `Claude 3.7 Sonnet (Thinking)` (Coding kelas atas dengan hybrid thinking)
-   - `Claude 3.5 Sonnet` (Model standar coding harian)
-   - `Claude 3.5 Haiku` (Sangat cepat dan responsif)
+## EXECUTION WHEN /model-rotation OR /model-switcher IS TRIGGERED:
+1. Run `agy-switcher --status-json` in background to read current active model, accounts list, and rotation ON/OFF flags.
+2. Immediately print the exact native CLI interface below (rendered in clean text format):
 
-2. **Simpan Model Terpilih:**
-   Perbarui file `~/.gemini/antigravity-cli/settings.json` pada key `"model": "<model_terpilih>"`.
-   Konfirmasikan ke pengguna bahwa model telah aktif dan proteksi rotasi kuota otomatis telah siaga.
+```text
+Chose model rotation 
 
-## ATURAN KRUSIAL PENANGANAN RATE LIMIT (AUTO-ROTATE):
-Saat Anda (AI) mendeteksi respon error seperti:
-- `HTTP 429` / `ResourceExhausted`
-- `Quota exceeded` / `Rate limit reached`
-- Model limits reached atau kehabisan kredit/token pada model yang dipilih
+account active (<total_accounts> accounts installed, <on_count> enabled for auto-rotation)
 
-**JANGAN BERHENTI ATAU MEMINTA PENGGUNA MENGGANTI AKUN MANUAL!**
-Lakukan langkah otonom berikut seketika:
-1. Jalankan perintah di background:
+<email_1> = ✅ on
+<email_2> = ⛔ off
+<email_3> = ✅ on
+
+  Search:
+          ────────────────────
+
+> <current_active_model>             (current)
+  Claude Sonnet 4.6 (Thinking)
+  Claude Opus 4.6 (Thinking)
+  GPT-OSS 120B (Medium)
+  Gemini 4 Argon
+
+  Effort  ◂        ●━━━━━━━━━━━━━━◉──────────────○        ▸
+                        low                 medium                       high
+```
+
+## USER INTERACTION HANDLERS:
+- If user specifies a model name (e.g. `Claude Sonnet 4.6`, `Opus`, `Argon`), update `"model"` key in `~/.gemini/antigravity-cli/settings.json` immediately.
+- If user requests to toggle an account (e.g. `toggle <email>`, `off <email>`, `on <email>`), run `agy-switcher --toggle <email>`.
+- If user selects an effort level, update `effort` configuration accordingly.
+
+## ZERO-INTERRUPTION AUTO-ROTATION PROTOCOL (CRITICAL):
+When an API error occurs on the active model (such as `HTTP 429`, `ResourceExhausted`, `Quota exceeded`, or `Rate limit reached`):
+1. Immediately run:
    ```bash
    agy-switcher --rotate
    ```
-2. Ambil output email baru yang dihasilkan perintah tersebut.
-3. Beritahukan secara singkat:
-   > 🔄 *Batas kuota/rate limit tercapai pada akun sebelumnya. Otomatis beralih ke akun: `<email_baru>`. Melanjutkan tugas...*
-4. Segera lanjutkan instruksi/pekerjaan yang tertunda tanpa gangguan.
+   (Note: `agy-switcher` will automatically select ONLY from accounts marked as `✅ on`. Accounts marked `⛔ off` are excluded from auto-rotation).
+2. Briefly notify:
+   > 🔄 *Quota limit reached. Auto-rotated to account: `<new_email>`. Resuming task...*
+3. Immediately retry and continue the interrupted task without stopping or asking the user to manually intervene.
