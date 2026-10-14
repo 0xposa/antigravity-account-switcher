@@ -24,7 +24,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "📁 Installing binaries to: $BIN_DIR"
 cp "$SCRIPT_DIR/bin/agy-rotation" "$BIN_DIR/agy-rotation"
-ln -sf "$BIN_DIR/agy-rotation" "$BIN_DIR/agy-account"
 if [ -f "$SCRIPT_DIR/bin/agy-claude" ]; then
   cp "$SCRIPT_DIR/bin/agy-claude" "$BIN_DIR/agy-claude"
   chmod +x "$BIN_DIR/agy-claude"
