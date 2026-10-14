@@ -1,0 +1,392 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import os
+import sys
+import json
+import base64
+import shutil
+import subprocess
+from datetime import datetime
+
+HOME = os.environ.get("HOME", "/data/data/com.termux/files/home")
+AGY_DIR = os.path.join(HOME, ".gemini", "antigravity-cli")
+ACTIVE_TOKEN = os.path.join(AGY_DIR, "antigravity-oauth-token")
+ACCOUNTS_DIR = os.path.join(AGY_DIR, "accounts")
+
+os.makedirs(ACCOUNTS_DIR, exist_ok=True)
+
+# ----------------- Helper Functions -----------------
+
+def get_email_from_token_file(filepath):
+    if not os.path.exists(filepath):
+        return None
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        id_token = data.get("id_token")
+        if id_token:
+            parts = id_token.split(".")
+            if len(parts) >= 2:
+                payload_part = parts[1]
+                payload_part += "=" * (-len(payload_part) % 4)
+                payload_json = json.loads(base64.urlsafe_b64decode(payload_part))
+                return payload_json.get("email")
+    except Exception:
+        pass
+    return None
+
+def get_expiry(filepath):
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        expiry_str = data.get("token", {}).get("expiry")
+        if expiry_str:
+            return expiry_str.split(".")[0].replace("T", " ")
+    except Exception:
+        pass
+    return "N/A"
+
+def get_accounts():
+    files = sorted([f for f in os.listdir(ACCOUNTS_DIR) if f.endswith(".token")])
+    accs = []
+    active_email = get_email_from_token_file(ACTIVE_TOKEN)
+    for f in files:
+        path = os.path.join(ACCOUNTS_DIR, f)
+        email = get_email_from_token_file(path) or f[:-6]
+        is_curr = (active_email is not None and email.lower() == active_email.lower())
+        accs.append({
+            "file": f,
+            "path": path,
+            "email": email,
+            "expiry": get_expiry(path),
+            "is_active": is_curr
+        })
+    return accs
+
+def sync_active_token():
+    """Sync refreshed active token back to accounts directory if it belongs to one of the accounts."""
+    if not os.path.exists(ACTIVE_TOKEN):
+        return
+    active_email = get_email_from_token_file(ACTIVE_TOKEN)
+    if not active_email:
+        return
+    target_file = os.path.join(ACCOUNTS_DIR, f"{active_email}.token")
+    # Only copy if active token is valid and exists
+    try:
+        shutil.copy2(ACTIVE_TOKEN, target_file)
+    except Exception:
+        pass
+
+def save_current_token(label=None):
+    if not os.path.exists(ACTIVE_TOKEN):
+        return False
+    email = get_email_from_token_file(ACTIVE_TOKEN)
+    target_name = label if label else (email if email else "default")
+    if not target_name.endswith(".token"):
+        target_name += ".token"
+    dest = os.path.join(ACCOUNTS_DIR, target_name)
+    shutil.copy2(ACTIVE_TOKEN, dest)
+    return True
+
+def switch_account_internal(identifier):
+    accounts = get_accounts()
+    if not accounts:
+        return False, "Tidak ada akun terdaftar."
+    
+    target = None
+    if str(identifier).isdigit():
+        idx = int(identifier) - 1
+        if 0 <= idx < len(accounts):
+            target = accounts[idx]
+    else:
+        ident = str(identifier).lower().strip()
+        for acc in accounts:
+            if ident in acc["email"].lower() or ident in acc["file"].lower():
+                target = acc
+                break
+
+    if not target:
+        return False, f"Akun '{identifier}' tidak ditemukan."
+
+    # Sync current before switching
+    sync_active_token()
+    shutil.copy2(target["path"], ACTIVE_TOKEN)
+    return True, target["email"]
+
+def rotate_account_internal():
+    accounts = get_accounts()
+    if len(accounts) < 2:
+        return False, "Minimal perlu 2 akun untuk rotasi."
+    
+    # Sync current token first
+    sync_active_token()
+
+    active_email = get_email_from_token_file(ACTIVE_TOKEN)
+    current_idx = -1
+    for idx, acc in enumerate(accounts):
+        if active_email and acc["email"].lower() == active_email.lower():
+            current_idx = idx
+            break
+            
+    next_idx = (current_idx + 1) % len(accounts)
+    next_acc = accounts[next_idx]
+    shutil.copy2(next_acc["path"], ACTIVE_TOKEN)
+    return True, next_acc["email"]
+
+# ----------------- Interactive UI in Termux -----------------
+
+TEXTS = {
+    "id": {
+        "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
+        "menu_title": "MENU UTAMA",
+        "opt1": "Tambah Akun (Add account)",
+        "opt2": "Hapus Akun (Remove account)",
+        "opt3": "Daftar Akun (List account)",
+        "opt4": "Keluar",
+        "choose": "Pilih menu [1-4]: ",
+        "invalid": "Pilihan tidak valid. Silakan coba lagi.",
+        "press_enter": "Tekan [Enter] untuk kembali ke menu...",
+        "list_title": "DAFTAR AKUN ANTIGRAVITY",
+        "no_acc": "Belum ada akun di dalam daftar.",
+        "active_tag": "[AKTIF]",
+        "total": "Total Akun",
+        "add_intro": "Menyiapkan penambahan akun baru...",
+        "add_notice": "[PETUNJUK LOGIN AKUN BARU]",
+        "add_step1": "1. Perintah `agy` akan dijalankan.",
+        "add_step2": "2. Buka link di browser & login menggunakan AKUN BARU Anda.",
+        "add_step3": "3. Setelah berhasil masuk ke prompt agy, ketik /exit.",
+        "add_press": "Tekan [Enter] untuk mulai...",
+        "add_success": "Akun baru berhasil ditambahkan:",
+        "add_failed": "Gagal mendeteksi akun baru atau proses dibatalkan.",
+        "del_title": "HAPUS AKUN",
+        "del_prompt": "Masukkan nomor atau email akun yang ingin dihapus (0 untuk batal): ",
+        "del_confirm": "Yakin ingin menghapus akun {}? (y/n): ",
+        "del_success": "Akun berhasil dihapus: {}",
+        "del_cancel": "Penghapusan dibatalkan.",
+        "del_not_found": "Akun tidak ditemukan.",
+        "del_was_active": "Akun yang dihapus adalah akun aktif. Mengalihkan ke akun lain..."
+    },
+    "en": {
+        "title": "ANTIGRAVITY ACCOUNT ROTATION CLI",
+        "menu_title": "MAIN MENU",
+        "opt1": "Add account",
+        "opt2": "Remove account",
+        "opt3": "List account",
+        "opt4": "Exit",
+        "choose": "Select option [1-4]: ",
+        "invalid": "Invalid selection. Please try again.",
+        "press_enter": "Press [Enter] to return to menu...",
+        "list_title": "ANTIGRAVITY ACCOUNTS LIST",
+        "no_acc": "No accounts stored in the pool.",
+        "active_tag": "[ACTIVE]",
+        "total": "Total Accounts",
+        "add_intro": "Preparing to add a new account...",
+        "add_notice": "[NEW ACCOUNT LOGIN INSTRUCTIONS]",
+        "add_step1": "1. The `agy` command will be launched.",
+        "add_step2": "2. Open the login URL in browser & authenticate with your NEW account.",
+        "add_step3": "3. Once in the agy prompt, type /exit to save.",
+        "add_press": "Press [Enter] to proceed...",
+        "add_success": "New account successfully added:",
+        "add_failed": "Failed to detect new account or process was cancelled.",
+        "del_title": "REMOVE ACCOUNT",
+        "del_prompt": "Enter account number or email to remove (0 to cancel): ",
+        "del_confirm": "Are you sure you want to remove {}? (y/n): ",
+        "del_success": "Account successfully removed: {}",
+        "del_cancel": "Deletion cancelled.",
+        "del_not_found": "Account not found.",
+        "del_was_active": "Deleted account was the active account. Switching to another account..."
+    }
+}
+
+def print_list(lang="id"):
+    t = TEXTS[lang]
+    sync_active_token()
+    accounts = get_accounts()
+    print(f"\n================= {t['list_title']} =================")
+    if not accounts:
+        print(f" {t['no_acc']}")
+    else:
+        for idx, acc in enumerate(accounts, 1):
+            tag = f" \033[1;32m{t['active_tag']}\033[0m" if acc["is_active"] else ""
+            print(f" {idx}. {acc['email']}{tag}")
+            print(f"    File: {acc['file']} | Exp: {acc['expiry']}")
+    print("=" * (len(t['list_title']) + 36))
+    print(f"{t['total']}: {len(accounts)}\n")
+
+def ui_add_account(lang="id"):
+    t = TEXTS[lang]
+    print(f"\n➕ {t['add_intro']}")
+    
+    # Backup current active account into pool
+    if os.path.exists(ACTIVE_TOKEN):
+        curr_email = get_email_from_token_file(ACTIVE_TOKEN)
+        curr_name = curr_email if curr_email else "current_account"
+        save_current_token(curr_name)
+
+    temp_backup = os.path.join(AGY_DIR, "temp_current_token.bak")
+    if os.path.exists(ACTIVE_TOKEN):
+        shutil.move(ACTIVE_TOKEN, temp_backup)
+
+    print(f"\n\033[1;33m{t['add_notice']}\033[0m")
+    print(t["add_step1"])
+    print(t["add_step2"])
+    print(t["add_step3"])
+    print()
+
+    input(t["add_press"])
+    try:
+        subprocess.run(["agy"])
+    except Exception as e:
+        print(f"Error: {e}")
+
+    if os.path.exists(ACTIVE_TOKEN):
+        new_email = get_email_from_token_file(ACTIVE_TOKEN)
+        name = new_email if new_email else "new_account"
+        dest = os.path.join(ACCOUNTS_DIR, f"{name}.token")
+        shutil.copy2(ACTIVE_TOKEN, dest)
+        print(f"\n🎉 \033[1;32m{t['add_success']} {new_email}\033[0m")
+    else:
+        print(f"\n❌ \033[1;31m{t['add_failed']}\033[0m")
+        if os.path.exists(temp_backup):
+            shutil.move(temp_backup, ACTIVE_TOKEN)
+
+    if os.path.exists(temp_backup):
+        try:
+            os.remove(temp_backup)
+        except Exception:
+            pass
+
+def ui_remove_account(lang="id"):
+    t = TEXTS[lang]
+    print_list(lang)
+    accounts = get_accounts()
+    if not accounts:
+        return
+
+    choice = input(t["del_prompt"]).strip()
+    if not choice or choice == "0":
+        print(t["del_cancel"])
+        return
+
+    target = None
+    if choice.isdigit():
+        idx = int(choice) - 1
+        if 0 <= idx < len(accounts):
+            target = accounts[idx]
+    else:
+        for acc in accounts:
+            if choice.lower() in acc["email"].lower():
+                target = acc
+                break
+
+    if not target:
+        print(f"❌ {t['del_not_found']}")
+        return
+
+    confirm = input(t["del_confirm"].format(target["email"])).strip().lower()
+    if confirm in ("y", "yes", "ya"):
+        was_active = target["is_active"]
+        try:
+            os.remove(target["path"])
+            print(f"✅ {t['del_success'].format(target['email'])}")
+            if was_active:
+                remaining = get_accounts()
+                if remaining:
+                    print(t["del_was_active"])
+                    shutil.copy2(remaining[0]["path"], ACTIVE_TOKEN)
+                    print(f"Aktif sekarang: {remaining[0]['email']}")
+        except Exception as e:
+            print(f"Error removing account: {e}")
+    else:
+        print(t["del_cancel"])
+
+def interactive_loop():
+    # 1. Pilih Bahasa
+    print("\n" + "=" * 45)
+    print("      ANTIGRAVITY ACCOUNT ROTATION CLI")
+    print("=" * 45)
+    print("Pilih Bahasa / Select Language:")
+    print(" 1. Bahasa Indonesia")
+    print(" 2. English")
+    lang_choice = input("\nPilih [1/2] (default: 1): ").strip()
+    lang = "en" if lang_choice == "2" else "id"
+
+    t = TEXTS[lang]
+
+    # 2. Menu Utama
+    while True:
+        print("\n" + "=" * 45)
+        print(f"               {t['menu_title']}")
+        print("=" * 45)
+        print(f" 1. {t['opt1']}")
+        print(f" 2. {t['opt2']}")
+        print(f" 3. {t['opt3']}")
+        print(f" 4. {t['opt4']}")
+        print("-" * 45)
+        choice = input(t["choose"]).strip()
+
+        if choice == "1":
+            ui_add_account(lang)
+            input(f"\n{t['press_enter']}")
+        elif choice == "2":
+            ui_remove_account(lang)
+            input(f"\n{t['press_enter']}")
+        elif choice == "3":
+            print_list(lang)
+            input(f"{t['press_enter']}")
+        elif choice == "4":
+            print("Sampai jumpa! / Goodbye!\n")
+            break
+        else:
+            print(f"\n❌ {t['invalid']}")
+
+# ----------------- CLI Argument Handler -----------------
+
+def main():
+    if len(sys.argv) == 1:
+        interactive_loop()
+        return
+
+    arg1 = sys.argv[1].lower()
+
+    if arg1 in ("--rotate", "rotate"):
+        ok, res = rotate_account_internal()
+        if ok:
+            print(f"OK:{res}")
+            sys.exit(0)
+        else:
+            print(f"ERR:{res}", file=sys.stderr)
+            sys.exit(1)
+
+    elif arg1 in ("--switch", "switch"):
+        if len(sys.argv) < 3:
+            print("ERR:Target account required", file=sys.stderr)
+            sys.exit(1)
+        ok, res = switch_account_internal(sys.argv[2])
+        if ok:
+            print(f"OK:{res}")
+            sys.exit(0)
+        else:
+            print(f"ERR:{res}", file=sys.stderr)
+            sys.exit(1)
+
+    elif arg1 in ("--list-json", "list-json"):
+        sync_active_token()
+        accs = get_accounts()
+        print(json.dumps(accs, indent=2))
+        sys.exit(0)
+
+    elif arg1 in ("--list", "list"):
+        print_list("id")
+        sys.exit(0)
+
+    elif arg1 in ("--active-email", "active-email"):
+        sync_active_token()
+        email = get_email_from_token_file(ACTIVE_TOKEN)
+        print(email or "None")
+        sys.exit(0)
+
+    else:
+        interactive_loop()
+
+if __name__ == "__main__":
+    main()

@@ -1,36 +1,35 @@
 ---
 name: switch-account
-description: Manages multiple Google Antigravity accounts, checks current account, and rotates accounts when rate limit or quota is exhausted.
+description: Mengalihkan akun Antigravity ke akun lain dalam pool. Tampilkan pilihan akun yang tersimpan secara interaktif setelah command /switch-account dipilih.
 ---
 
 # Antigravity Account Switcher Skill
 
-Use this skill when the user asks to check the active account, switch accounts, add a new account, or rotate accounts after hitting Claude or Gemini model limits.
+Skill ini digunakan khusus di dalam Antigravity untuk beralih antar akun Google/Antigravity yang tersimpan.
 
-## Available CLI Commands
-
-The system is equipped with the `agy-account` utility:
-
-1. **Check current active account & list all accounts:**
+## Alur Eksekusi Saat /switch-account Dipanggil:
+1. **Dapatkan Daftar Akun:**
+   Jalankan perintah:
    ```bash
-   agy-account list
+   agy-rotation --list-json
    ```
+2. **Tampilkan Opsi Pemilihan Akun:**
+   Gunakan tool `ask_question` untuk menampilkan semua akun yang tersedia.
+   Format opsi:
+   - Berikan tanda `(Aktif)` atau `(Recommended)` pada akun yang sedang aktif atau yang siap dipakai.
+   - Contoh:
+     - `1. nandibaik090120@gmail.com (Aktif)`
+     - `2. nandinurrahman010920@gmail.com`
+     - `3. nanditokulewa@gmail.com`
+     - `4. nearmahkota@gmail.com`
+     - `5. 0xnastar@gmail.com`
 
-2. **Rotate to the next account in the pool:**
+3. **Eksekusi Pengalihan:**
+   Setelah pengguna memilih akun target, jalankan:
    ```bash
-   agy-account rotate
+   agy-rotation --switch "<email_atau_nomor_pilihan>"
    ```
+4. **Konfirmasi:**
+   Beri tahu pengguna bahwa akun aktif telah berhasil dialihkan ke akun yang dipilih.
 
-3. **Switch to a specific account by email or number:**
-   ```bash
-   agy-account switch <nomor/email>
-   ```
-
-4. **Add a new Google account:**
-   ```bash
-   agy-account add
-   ```
-
-## When Claude Opus/Sonnet Hits Rate Limit:
-1. Run `agy-account rotate` to switch the underlying OAuth credential to the next Google account.
-2. The user can then resume their task seamlessly using `agy --continue`.
+*(Catatan: Penambahan akun baru (Add account) dan penghapusan akun (Remove account) dilakukan melalui menu terminal Termux `agy-rotation`)*.
