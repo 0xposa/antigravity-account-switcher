@@ -1,28 +1,43 @@
-#!/usr/bin/env bash
-# agy-claude: Antigravity runner with auto-rotation for Claude Opus & Sonnet
+#!/data/data/com.termux/files/usr/bin/env bash
+# agy-auto / agy-claude: Antigravity runner with auto-rotation for any model
 set -e
 
 MODEL="claude-opus-4-6-thinking"
-
-# Cek argumen
 ARGS=()
-for arg in "$@"; do
-  case "$arg" in
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --model)
+      MODEL="$2"
+      shift 2
+      ;;
+    --model=*)
+      MODEL="${1#*=}"
+      shift
+      ;;
+    --gemini)
+      MODEL="gemini-3.8-flash-high"
+      shift
+      ;;
     --sonnet)
       MODEL="claude-sonnet-4-6"
+      shift
       ;;
     --opus)
       MODEL="claude-opus-4-6-thinking"
+      shift
       ;;
     *)
-      ARGS+=("$arg")
+      ARGS+=("$1")
+      shift
       ;;
   esac
 done
 
 echo -e "\033[1;34m========================================================\033[0m"
-echo -e "\033[1;32m  Antigravity Claude Auto-Runner (Opus/Sonnet Rotator)  \033[0m"
-echo -e "  Model: \033[1;33m$MODEL\033[0m"
+echo -e "\033[1;32m       Antigravity Auto-Runner (Model Rotator)          \033[0m"
+echo -e "  Model aktif: \033[1;33m$MODEL\033[0m"
 echo -e "\033[1;34m========================================================\033[0m"
 
 # Tampilkan akun yang aktif jika agy-account tersedia
@@ -37,8 +52,8 @@ agy --model "$MODEL" "${ARGS[@]}" || true
 # Loop auto-rotate jika sesi keluar / limit
 while true; do
   echo -e "\n\033[1;33m--------------------------------------------------------\033[0m"
-  echo -e "Sesi selesai atau kuota model mungkin telah mencapai limit."
-  read -p "Tekan [Enter] untuk ganti akun & LANJUTKAN task, atau 'q' untuk selesai: " choice
+  echo -e "Sesi selesai atau kuota model '$MODEL' mungkin telah mencapai limit."
+  read -p "Tekan [Enter] untuk rotasi akun & LANJUTKAN task, atau 'q' untuk keluar: " choice
   
   if [ "$choice" = "q" ] || [ "$choice" = "Q" ]; then
     echo "Selesai."
