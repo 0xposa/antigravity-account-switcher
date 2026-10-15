@@ -107,7 +107,8 @@ Gunakan slash commands berikut langsung di dalam sesi prompt Antigravity:
 Membuka dialog modal interaktif (`ask_question`) untuk memilih dan mengaktifkan akun Google secara instan.
 
 - **Rotasi Otomatis (Zero Interruption)**:
-  Jika model terkena `HTTP 429` (Rate limit / Quota exceeded / ResourceExhausted), asisten AI akan **otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang bertanda `✅ on`, lalu melanjutkan tugas Anda tanpa jeda!
+  Jika akun aktif terkena limit `HTTP 429` (Rate limit / Quota exceeded / ResourceExhausted), asisten AI akan **otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang bertanda `✅ on`, lalu langsung melanjutkan kodingan Anda tanpa jeda!
+  > 💡 **Kualitas Model Tetap Terjaga**: Model unggulan yang sedang Anda gunakan (misalnya **Claude Opus**) **TIDAK akan diturunkan/berubah**, karena akun cadangan Anda memiliki kuota harian Claude Opus yang masih segar!
 
 > **Catatan Pemilihan Model**: Untuk mengganti model AI (Gemini, Claude, GPT), gunakan perintah bawaan resmi Antigravity: **`/model`**.
 
@@ -198,7 +199,8 @@ Select option [1-5]:
 Triggers an interactive `ask_question` modal dialog to select and activate your Google accounts on the fly.
 
 - **Zero-Interruption Auto-Rotation**:
-  When a model triggers `HTTP 429` (Quota exceeded / Rate limit), Antigravity executes `agy-switcher --rotate` in the background, rotating credentials strictly across accounts marked `✅ on`, and resumes work instantly without manual action.
+  When your active account hits `HTTP 429` (Quota exceeded / Rate limit), Antigravity executes `agy-switcher --rotate` in the background, rotating credentials strictly across accounts marked `✅ on`, and resumes work instantly without manual action.
+  > 💡 **No Quality Downgrade**: Your premier model (such as **Claude Opus**) **remains active**, powered by the fresh daily quota of your standby Google account!
 
 > **Note on Model Switching**: To switch models (Gemini, Claude, GPT), use Antigravity's official built-in command: **`/model`**.
 
