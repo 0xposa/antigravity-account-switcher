@@ -73,38 +73,240 @@ def get_expiry(filepath):
         pass
     return "N/A"
 
-def get_rotation_config():
-    cfg = {}
+AVAILABLE_MODELS = [
+    {"name": "Gemini 3.8 Flash", "has_effort": True},
+    {"name": "Claude Sonnet 4.6 (Thinking)", "has_effort": False},
+    {"name": "Claude Opus 4.6 (Thinking)", "has_effort": False},
+    {"name": "GPT-OSS 120B (Medium)", "has_effort": True},
+    {"name": "Gemini 4 Argon", "has_effort": False}
+]
+EFFORT_LEVELS = ["low", "medium", "high"]
+
+def get_full_rotation_config():
+    cfg = {"accounts": {}, "models": {}, "effort": "medium"}
     if os.path.exists(ROTATION_CONFIG):
         try:
             with open(ROTATION_CONFIG, "r", encoding="utf-8") as f:
-                cfg = json.load(f).get("accounts", {})
+                data = json.load(f)
+                if isinstance(data, dict):
+                    cfg["accounts"] = data.get("accounts", {})
+                    cfg["models"] = data.get("models", {})
+                    cfg["effort"] = data.get("effort", "medium")
         except Exception:
-            cfg = {}
-    # Ensure all stored accounts are registered, default to True (ON)
+            pass
+    # Ensure default accounts
     accounts = get_accounts(load_cfg=False)
     updated = False
     for acc in accounts:
-        if acc["email"] not in cfg:
-            cfg[acc["email"]] = True
+        if acc["email"] not in cfg["accounts"]:
+            cfg["accounts"][acc["email"]] = True
+            updated = True
+    # Ensure default models
+    for m in AVAILABLE_MODELS:
+        if m["name"] not in cfg["models"]:
+            cfg["models"][m["name"]] = True
             updated = True
     if updated or not os.path.exists(ROTATION_CONFIG):
-        save_rotation_config(cfg)
+        save_full_rotation_config(cfg)
     return cfg
 
-def save_rotation_config(cfg):
+def save_full_rotation_config(cfg):
     try:
         with open(ROTATION_CONFIG, "w", encoding="utf-8") as f:
-            json.dump({"accounts": cfg}, f, indent=2)
+            json.dump(cfg, f, indent=2)
     except Exception:
         pass
 
+def get_rotation_config():
+    return get_full_rotation_config().get("accounts", {})
+
+def save_rotation_config(acc_cfg):
+    full = get_full_rotation_config()
+    full["accounts"] = acc_cfg
+    save_full_rotation_config(full)
+
 def toggle_rotation_account(email):
-    cfg = get_rotation_config()
-    current = cfg.get(email, True)
-    cfg[email] = not current
-    save_rotation_config(cfg)
-    return cfg[email]
+    full = get_full_rotation_config()
+    current = full["accounts"].get(email, True)
+    full["accounts"][email] = not current
+    save_full_rotation_config(full)
+    return full["accounts"][email]
+
+def get_model_rotation_config():
+    return get_full_rotation_config().get("models", {})
+
+def toggle_model_rotation(identifier):
+    full = get_full_rotation_config()
+    models_cfg = full.get("models", {})
+    target_name = None
+    
+    if str(identifier).isdigit():
+        idx = int(identifier) - 1
+        if 0 <= idx < len(AVAILABLE_MODELS):
+            target_name = AVAILABLE_MODELS[idx]["name"]
+    else:
+        ident = str(identifier).lower().strip()
+        for m in AVAILABLE_MODELS:
+            if ident in m["name"].lower():
+                target_name = m["name"]
+                break
+                
+    if not target_name:
+        return False, f"Model '{identifier}' tidak ditemukan.", False
+
+    curr_val = models_cfg.get(target_name, True)
+    models_cfg[target_name] = not curr_val
+    full["models"] = models_cfg
+    save_full_rotation_config(full)
+    return True, target_name, models_cfg[target_name]
+
+def get_current_model():
+    current_model = "Gemini 3.8 Flash (High)"
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                current_model = json.load(f).get("model", current_model)
+        except Exception:
+            pass
+    return current_model
+
+def get_current_effort():
+    cur = get_current_model()
+    for eff in ("High", "Medium", "Low"):
+        if f"({eff})" in cur:
+            return eff.lower()
+    full = get_full_rotation_config()
+    return full.get("effort", "medium")
+
+def format_model_full_name(model_obj, effort_level):
+    name = model_obj["name"]
+    if model_obj["has_effort"]:
+        eff_cap = effort_level.capitalize()
+        if "(" in name and ("Low" in name or "Medium" in name or "High" in name):
+            base = name.split("(")[0].strip()
+            return f"{base} ({eff_cap})"
+        else:
+            return f"{name} ({eff_cap})"
+    return name
+
+def set_model_in_settings(full_model_name):
+    settings = {}
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                settings = json.load(f)
+        except Exception:
+            settings = {}
+    settings["model"] = full_model_name
+    for eff in ("High", "Medium", "Low"):
+        if f"({eff})" in full_model_name:
+            full = get_full_rotation_config()
+            full["effort"] = eff.lower()
+            save_full_rotation_config(full)
+            break
+    try:
+        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+        return True, full_model_name
+    except Exception as e:
+        return False, str(e)
+
+def set_model_internal(identifier):
+    effort = get_current_effort()
+    target_model = None
+    if str(identifier).isdigit():
+        idx = int(identifier) - 1
+        if 0 <= idx < len(AVAILABLE_MODELS):
+            target_model = AVAILABLE_MODELS[idx]
+    else:
+        ident = str(identifier).lower().strip()
+        for m in AVAILABLE_MODELS:
+            if ident in m["name"].lower():
+                target_model = m
+                break
+    if not target_model:
+        return False, f"Model '{identifier}' tidak ditemukan."
+    full_name = format_model_full_name(target_model, effort)
+    return set_model_in_settings(full_name)
+
+def set_effort_internal(effort_level):
+    eff = str(effort_level).lower().strip()
+    if eff not in EFFORT_LEVELS:
+        return False, f"Effort harus salah satu dari: {', '.join(EFFORT_LEVELS)}"
+    full = get_full_rotation_config()
+    full["effort"] = eff
+    save_full_rotation_config(full)
+    
+    cur_model_str = get_current_model()
+    for m in AVAILABLE_MODELS:
+        base_name = m["name"].split("(")[0].strip()
+        if base_name in cur_model_str:
+            if m["has_effort"]:
+                new_full = format_model_full_name(m, eff)
+                set_model_in_settings(new_full)
+                return True, f"{new_full} (effort: {eff})"
+    return True, f"Effort set to {eff}"
+
+def nav_model_internal(direction):
+    dir_str = str(direction).lower().strip()
+    cur_model_str = get_current_model()
+    current_idx = 0
+    for idx, m in enumerate(AVAILABLE_MODELS):
+        base_name = m["name"].split("(")[0].strip()
+        if base_name in cur_model_str:
+            current_idx = idx
+            break
+            
+    if dir_str in ("up", "atas", "u", "prev"):
+        new_idx = (current_idx - 1) % len(AVAILABLE_MODELS)
+    elif dir_str in ("down", "bawah", "d", "next"):
+        new_idx = (current_idx + 1) % len(AVAILABLE_MODELS)
+    else:
+        return False, "Arah harus 'up' atau 'down'."
+
+    effort = get_current_effort()
+    target_model = AVAILABLE_MODELS[new_idx]
+    full_name = format_model_full_name(target_model, effort)
+    return set_model_in_settings(full_name)
+
+def nav_effort_internal(direction):
+    dir_str = str(direction).lower().strip()
+    current_effort = get_current_effort()
+    try:
+        eff_idx = EFFORT_LEVELS.index(current_effort)
+    except ValueError:
+        eff_idx = 1
+        
+    if dir_str in ("left", "kiri", "l", "prev"):
+        new_eff_idx = max(0, eff_idx - 1)
+    elif dir_str in ("right", "kanan", "r", "next"):
+        new_eff_idx = min(len(EFFORT_LEVELS) - 1, eff_idx + 1)
+    else:
+        return False, "Arah harus 'left' atau 'right'."
+
+    new_eff = EFFORT_LEVELS[new_eff_idx]
+    return set_effort_internal(new_eff)
+
+def get_models_status():
+    cur_model_str = get_current_model()
+    cur_effort = get_current_effort()
+    model_cfg = get_model_rotation_config()
+    
+    result = []
+    for idx, m in enumerate(AVAILABLE_MODELS, 1):
+        full_name = format_model_full_name(m, cur_effort)
+        base_name = m["name"].split("(")[0].strip()
+        is_active = (base_name in cur_model_str)
+        auto_rotate = model_cfg.get(m["name"], True)
+        result.append({
+            "index": idx,
+            "name": m["name"],
+            "full_name": full_name,
+            "is_active": is_active,
+            "auto_rotate": auto_rotate,
+            "has_effort": m["has_effort"]
+        })
+    return result
 
 def get_accounts(load_cfg=True):
     files = sorted([f for f in os.listdir(ACCOUNTS_DIR) if f.endswith(".token")])
@@ -214,9 +416,10 @@ TEXTS = {
         "opt1": "Tambah Akun (Add account)",
         "opt2": "Hapus Akun (Remove account)",
         "opt3": "Daftar Akun (List account)",
-        "opt4": "Kelola Auto-Rotation Pool (Toggle On/Off)",
-        "opt5": "Keluar (Exit)",
-        "choose": "Pilih menu [1-5]: ",
+        "opt4": "Kelola Auto-Rotation Pool Akun (Toggle On/Off)",
+        "opt5": "Kelola Model & Navigasi (Models & Up/Down/Left/Right)",
+        "opt6": "Keluar (Exit)",
+        "choose": "Pilih menu [1-6]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
         "press_enter": "Tekan [Enter] untuk kembali ke menu...",
         "ctrl_c_hint": "Tekan Ctrl+C untuk keluar kapan saja",
@@ -248,8 +451,9 @@ TEXTS = {
         "opt2": "Remove account",
         "opt3": "List account",
         "opt4": "Manage Auto-Rotation Pool (Toggle On/Off)",
-        "opt5": "Exit",
-        "choose": "Select option [1-5]: ",
+        "opt5": "Manage Models & Navigation (Models & Up/Down/Left/Right)",
+        "opt6": "Exit",
+        "choose": "Select option [1-6]: ",
         "invalid": "Invalid selection. Please try again.",
         "press_enter": "Press [Enter] to return to menu...",
         "ctrl_c_hint": "Press Ctrl+C to exit anytime",
@@ -325,6 +529,56 @@ def ui_manage_rotation_pool(lang="id"):
                 print("Nomor akun tidak valid.")
         else:
             print("Masukkan angka nomor akun.")
+
+def ui_manage_models(lang="id"):
+    while True:
+        clear_screen()
+        print(get_cat_banner(lang))
+        cur_effort = get_current_effort()
+        models_status = get_models_status()
+        
+        title = "KELOLA MODEL & AUTO-ROTATION" if lang == "id" else "MANAGE MODELS & AUTO-ROTATION"
+        print(f"\n\033[1;36m================= {title} =================\033[0m")
+        print("\033[2mNavigasi: [U]p, [D]own | Effort: [L]eft, [R]ight | Toggle: t <nomor> | Pilih: <nomor>\033[0m\n")
+        
+        for m in models_status:
+            idx = m["index"]
+            status = "\033[1;32m[✅ ON]\033[0m " if m["auto_rotate"] else "\033[1;31m[⛔ OFF]\033[0m"
+            cursor = "\033[1;33m> \033[0m" if m["is_active"] else "  "
+            curr_tag = " \033[1;33m(current)\033[0m" if m["is_active"] else ""
+            print(f"{cursor}\033[1;37m{idx}.\033[0m {status} {m['full_name']}{curr_tag}")
+            
+        print()
+        eff_dots = {
+            "low":    "◉━━━━━━━━━━━━━━○──────────────○",
+            "medium": "○━━━━━━━━━━━━━━◉──────────────○",
+            "high":   "○━━━━━━━━━━━━━━○──────────────◉"
+        }
+        bar = eff_dots.get(cur_effort, eff_dots["medium"])
+        print(f"  Effort  ◂        {bar}        ▸")
+        print("                        low                 medium                       high\n")
+        print("\033[1;36m" + "=" * 54 + "\033[0m")
+        
+        prompt = "Pilihan [U/D/L/R/t <nomor>/<nomor>/0 kembali]: " if lang == "id" else "Command [U/D/L/R/t <num>/<num>/0 return]: "
+        cmd = input(prompt).strip().lower()
+        
+        if not cmd or cmd == "0":
+            break
+        elif cmd in ("u", "up", "atas"):
+            nav_model_internal("up")
+        elif cmd in ("d", "down", "bawah"):
+            nav_model_internal("down")
+        elif cmd in ("l", "left", "kiri"):
+            nav_effort_internal("left")
+        elif cmd in ("r", "right", "kanan"):
+            nav_effort_internal("right")
+        elif cmd.startswith("t "):
+            part = cmd[2:].strip()
+            toggle_model_rotation(part)
+        elif cmd.isdigit():
+            set_model_internal(cmd)
+        else:
+            set_model_internal(cmd)
 
 def ui_add_account(lang="id"):
     clear_screen()
@@ -450,6 +704,7 @@ def interactive_loop():
         print(f" \033[1;37m3.\033[0m {t['opt3']}")
         print(f" \033[1;37m4.\033[0m {t['opt4']}")
         print(f" \033[1;37m5.\033[0m {t['opt5']}")
+        print(f" \033[1;37m6.\033[0m {t['opt6']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
         print(f" {t['ctrl_c_hint']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
@@ -472,6 +727,9 @@ def interactive_loop():
             ui_manage_rotation_pool(lang)
             input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "5":
+            ui_manage_models(lang)
+            input(f"\033[2m{t['press_enter']}\033[0m")
+        elif choice == "6":
             clear_screen()
             print(get_cat_banner(lang))
             print("\nSampai jumpa! / Goodbye!\n")
@@ -524,29 +782,81 @@ def main():
             print(json.dumps(accs, indent=2))
             sys.exit(0)
 
+        elif arg1 in ("--toggle-model", "toggle-model"):
+            if len(sys.argv) < 3:
+                print("ERR:Target model required", file=sys.stderr)
+                sys.exit(1)
+            ok, res, st = toggle_model_rotation(sys.argv[2])
+            if ok:
+                print(f"OK:{res}:{'ON' if st else 'OFF'}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--set-model", "set-model"):
+            if len(sys.argv) < 3:
+                print("ERR:Target model required", file=sys.stderr)
+                sys.exit(1)
+            ok, res = set_model_internal(sys.argv[2])
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--set-effort", "set-effort"):
+            if len(sys.argv) < 3:
+                print("ERR:Effort required (low, medium, high)", file=sys.stderr)
+                sys.exit(1)
+            ok, res = set_effort_internal(sys.argv[2])
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--nav-model", "nav-model"):
+            if len(sys.argv) < 3:
+                print("ERR:Direction required (up, down)", file=sys.stderr)
+                sys.exit(1)
+            ok, res = nav_model_internal(sys.argv[2])
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
+        elif arg1 in ("--nav-effort", "nav-effort"):
+            if len(sys.argv) < 3:
+                print("ERR:Direction required (left, right)", file=sys.stderr)
+                sys.exit(1)
+            ok, res = nav_effort_internal(sys.argv[2])
+            if ok:
+                print(f"OK:{res}")
+                sys.exit(0)
+            else:
+                print(f"ERR:{res}", file=sys.stderr)
+                sys.exit(1)
+
         elif arg1 in ("--status-json", "status-json"):
             sync_active_token()
             accs = get_accounts()
-            current_model = "Gemini 3.8 Flash (Medium)"
-            if os.path.exists(SETTINGS_FILE):
-                try:
-                    with open(SETTINGS_FILE, "r") as f:
-                        current_model = json.load(f).get("model", current_model)
-                except Exception:
-                    pass
+            current_model = get_current_model()
+            current_effort = get_current_effort()
             active_email = get_email_from_token_file(ACTIVE_TOKEN)
+            models_status = get_models_status()
             status_data = {
                 "active_model": current_model,
                 "active_email": active_email,
+                "effort": current_effort,
                 "accounts": accs,
                 "rotation_pool": [a["email"] for a in accs if a["auto_rotate"]],
-                "models": [
-                    "Gemini 3.8 Flash (Medium)",
-                    "Claude Sonnet 4.6 (Thinking)",
-                    "Claude Opus 4.6 (Thinking)",
-                    "GPT-OSS 120B (Medium)",
-                    "Gemini 4 Argon"
-                ]
+                "models": models_status,
+                "model_rotation_pool": [m["name"] for m in models_status if m["auto_rotate"]]
             }
             print(json.dumps(status_data, indent=2))
             sys.exit(0)

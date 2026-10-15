@@ -102,7 +102,7 @@ Pilih menu [1-4]:
 Gunakan slash commands berikut langsung di dalam sesi prompt Antigravity:
 
 #### 🔹 `/antigravity-switcher` atau `/model-switcher`
-Menampilkan status akun rotasi dan daftar model yang tersedia:
+Menampilkan status akun rotasi, daftar model pool, dan kontrol navigasi:
 ```text
 Chose model rotation 
 
@@ -112,33 +112,40 @@ user1@gmail.com = ✅ on
 user2@gmail.com = ⛔ off
 user3@gmail.com = ✅ on
 
-  Search:
-          ────────────────────
+Model Pool (Keikutsertaan Auto-Rotation & Pilihan Model):
+  [↑/↓ Atas/Bawah]: Pilih model aktif
+  [←/→ Kiri/Kanan]: Atur Effort Level (Low / Medium / High)
+  [Toggle <nomor> / on/off <nomor>]: Ubah status ikut serta (✅ ON / ⛔ OFF)
 
-> Gemini 3.8 Flash             (current)
-  Claude Sonnet 4.6 (Thinking)
-  Claude Opus 4.6 (Thinking)
-  GPT-OSS 120B (Medium)
-  Gemini 4 Argon
+> 1. [✅ ON]  Gemini 3.8 Flash (High)             (current)
+  2. [✅ ON]  Claude Sonnet 4.6 (Thinking)
+  3. [✅ ON]  Claude Opus 4.6 (Thinking)
+  4. [⛔ OFF] GPT-OSS 120B (High)
+  5. [✅ ON]  Gemini 4 Argon
 
-  Effort  ◂        ●━━━━━━━━━━━━━━◉──────────────○        ▸
+  Effort  ◂        ○━━━━━━━━━━━━━━○──────────────◉        ▸
                         low                 medium                       high
 ```
 
-- **Rotasi Otomatis (Zero Interruption)**:
-  Jika model terkena `HTTP 429` (Rate limit / Quota exceeded / ResourceExhausted), asisten AI akan **otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang bertanda `✅ on`, lalu melanjutkan tugas Anda tanpa jeda!
+- **Navigasi Interaktif**:
+  - `up` / `down`: Berpindah kursor memilih model aktif.
+  - `left` / `right`: Mengatur level effort (Low ◄ Medium ► High).
+  - `toggle <nomor>`: Mengaktifkan/menonaktifkan model dari keikutsertaan rotasi (`[✅ ON]` / `[⛔ OFF]`).
+  - Ketik nomor/nama model (misal `2` atau `Opus`) untuk langsung mengaktifkannya.
+- **Rotasi Otomatis Bertingkat (Zero Interruption)**:
+  Jika kuota model aktif habis (`HTTP 429`), asisten AI secara otomatis merotasi akun cadangan (`✅ on`). Jika seluruh akun habis, AI otomatis beralih ke model berikutnya yang berstatus `[✅ ON]`!
 
 #### 🔹 `/account-switcher`
-Menampilkan daftar akun tersimpan untuk berpindah akun secara instan:
+Menampilkan daftar akun tersimpan bernomor untuk berpindah akun secara instan:
 ```text
 chose account 
 
-> user1@gmail.com (current)
-  user2@gmail.com
-  user3@gmail.com
+  1. user1@gmail.com
+> 2. user2@gmail.com (current)
+  3. user3@gmail.com
 ```
 
-Cukup ketikkan nomor atau email akun yang diinginkan untuk langsung mengaktifkannya.
+Cukup ketikkan nomor akun (misal `1` atau `3`) atau alamat email untuk langsung mengaktifkannya.
 
 ---
 ---
@@ -239,33 +246,40 @@ user1@gmail.com = ✅ on
 user2@gmail.com = ⛔ off
 user3@gmail.com = ✅ on
 
-  Search:
-          ────────────────────
+Model Pool (Auto-Rotation Participation & Model Selection):
+  [↑/↓ Up/Down]: Select active model
+  [←/→ Left/Right]: Set Effort Level (Low / Medium / High)
+  [Toggle <num> / on/off <num>]: Toggle rotation participation (✅ ON / ⛔ OFF)
 
-> Gemini 3.8 Flash             (current)
-  Claude Sonnet 4.6 (Thinking)
-  Claude Opus 4.6 (Thinking)
-  GPT-OSS 120B (Medium)
-  Gemini 4 Argon
+> 1. [✅ ON]  Gemini 3.8 Flash (High)             (current)
+  2. [✅ ON]  Claude Sonnet 4.6 (Thinking)
+  3. [✅ ON]  Claude Opus 4.6 (Thinking)
+  4. [⛔ OFF] GPT-OSS 120B (High)
+  5. [✅ ON]  Gemini 4 Argon
 
-  Effort  ◂        ●━━━━━━━━━━━━━━◉──────────────○        ▸
+  Effort  ◂        ○━━━━━━━━━━━━━━○──────────────◉        ▸
                         low                 medium                       high
 ```
 
-- **Zero-Interruption Auto-Rotation**:
-  When a model triggers `HTTP 429` (Quota exceeded / Rate limit), Antigravity executes `agy-switcher --rotate` in the background, rotating credentials strictly across accounts marked `✅ on`, and resumes work instantly without manual action.
+- **Interactive Controls**:
+  - `up` / `down`: Shift active model selection up or down.
+  - `left` / `right`: Adjust effort levels (Low ◄ Medium ► High).
+  - `toggle <number>`: Toggle model participation in auto-rotation (`[✅ ON]` / `[⛔ OFF]`).
+  - Respond with a model number or name (e.g. `2` or `Opus`) to activate immediately.
+- **Two-Tier Zero-Interruption Auto-Rotation**:
+  When a model triggers `HTTP 429` (Quota exceeded / Rate limit), Antigravity automatically executes `agy-switcher --rotate` across accounts marked `✅ on`. If all accounts are exhausted, it auto-fails over to the next enabled model marked `[✅ ON]`!
 
 #### 🔹 `/account-switcher`
-Display registered accounts and switch active sessions on the fly:
+Display registered accounts with index numbers and switch active sessions on the fly:
 ```text
 chose account 
 
-> user1@gmail.com (current)
-  user2@gmail.com
-  user3@gmail.com
+  1. user1@gmail.com
+> 2. user2@gmail.com (current)
+  3. user3@gmail.com
 ```
 
-Respond with your target account's index or email to switch.
+Respond with your target account's number (e.g. `1` or `3`) or email to switch.
 
 ---
 

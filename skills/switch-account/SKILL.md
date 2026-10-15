@@ -12,18 +12,20 @@ description: Native Antigravity Account Switcher. Use when /switch-account or /a
 
 ## EXECUTION WHEN /switch-account OR /account-switcher IS TRIGGERED:
 1. Run `agy-switcher --list-json` to retrieve the current accounts.
-2. Output the exact interface format below:
+2. Output the exact interface format below with 1-based numbering for each account:
 
 ```text
 chose account 
 
-> <currently_active_email> (current)
-  <other_account_1>
-  <other_account_2>
-  <other_account_3>
+  1. <email_1>
+  2. <email_2>
+> 3. <currently_active_email> (current)
+  4. <email_4>
 ```
+*(Indicator `>` and `(current)` marks the currently active account. Every account must have its 1-based number: `1.`, `2.`, `3.`, etc. matching the order in `agy-switcher --list-json`).*
 
 ## USER SELECTION HANDLER:
-When user specifies which account to use (e.g. typing email or account number):
-1. Run `agy-switcher --switch "<chosen_account>"`.
-2. Confirm concisely: `Switched active account to: <chosen_account>`.
+When user specifies which account to use by typing the account number (e.g. `1`, `2`, `3`) or email/partial email:
+1. Extract the number or email target.
+2. Run `agy-switcher --switch "<number_or_email>"`.
+3. Confirm concisely: `Switched active account to: <chosen_account>`.
