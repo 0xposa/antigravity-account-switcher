@@ -416,10 +416,9 @@ TEXTS = {
         "opt1": "Tambah Akun (Add account)",
         "opt2": "Hapus Akun (Remove account)",
         "opt3": "Daftar Akun (List account)",
-        "opt4": "Kelola Auto-Rotation Pool Akun (Toggle On/Off)",
-        "opt5": "Kelola Model & Navigasi (Models & Up/Down/Left/Right)",
-        "opt6": "Keluar (Exit)",
-        "choose": "Pilih menu [1-6]: ",
+        "opt4": "Kelola Auto-Rotation Pool (Toggle On/Off)",
+        "opt5": "Keluar (Exit)",
+        "choose": "Pilih menu [1-5]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
         "press_enter": "Tekan [Enter] untuk kembali ke menu...",
         "ctrl_c_hint": "Tekan Ctrl+C untuk keluar kapan saja",
@@ -451,9 +450,8 @@ TEXTS = {
         "opt2": "Remove account",
         "opt3": "List account",
         "opt4": "Manage Auto-Rotation Pool (Toggle On/Off)",
-        "opt5": "Manage Models & Navigation (Models & Up/Down/Left/Right)",
-        "opt6": "Exit",
-        "choose": "Select option [1-6]: ",
+        "opt5": "Exit",
+        "choose": "Select option [1-5]: ",
         "invalid": "Invalid selection. Please try again.",
         "press_enter": "Press [Enter] to return to menu...",
         "ctrl_c_hint": "Press Ctrl+C to exit anytime",
@@ -529,56 +527,6 @@ def ui_manage_rotation_pool(lang="id"):
                 print("Nomor akun tidak valid.")
         else:
             print("Masukkan angka nomor akun.")
-
-def ui_manage_models(lang="id"):
-    while True:
-        clear_screen()
-        print(get_cat_banner(lang))
-        cur_effort = get_current_effort()
-        models_status = get_models_status()
-        
-        title = "KELOLA MODEL & AUTO-ROTATION" if lang == "id" else "MANAGE MODELS & AUTO-ROTATION"
-        print(f"\n\033[1;36m================= {title} =================\033[0m")
-        print("\033[2mNavigasi: [U]p, [D]own | Effort: [L]eft, [R]ight | Toggle: t <nomor> | Pilih: <nomor>\033[0m\n")
-        
-        for m in models_status:
-            idx = m["index"]
-            status = "\033[1;32m[✅ ON]\033[0m " if m["auto_rotate"] else "\033[1;31m[⛔ OFF]\033[0m"
-            cursor = "\033[1;33m> \033[0m" if m["is_active"] else "  "
-            curr_tag = " \033[1;33m(current)\033[0m" if m["is_active"] else ""
-            print(f"{cursor}\033[1;37m{idx}.\033[0m {status} {m['full_name']}{curr_tag}")
-            
-        print()
-        eff_dots = {
-            "low":    "◉━━━━━━━━━━━━━━○──────────────○",
-            "medium": "○━━━━━━━━━━━━━━◉──────────────○",
-            "high":   "○━━━━━━━━━━━━━━○──────────────◉"
-        }
-        bar = eff_dots.get(cur_effort, eff_dots["medium"])
-        print(f"  Effort  ◂        {bar}        ▸")
-        print("                        low                 medium                       high\n")
-        print("\033[1;36m" + "=" * 54 + "\033[0m")
-        
-        prompt = "Pilihan [U/D/L/R/t <nomor>/<nomor>/0 kembali]: " if lang == "id" else "Command [U/D/L/R/t <num>/<num>/0 return]: "
-        cmd = input(prompt).strip().lower()
-        
-        if not cmd or cmd == "0":
-            break
-        elif cmd in ("u", "up", "atas"):
-            nav_model_internal("up")
-        elif cmd in ("d", "down", "bawah"):
-            nav_model_internal("down")
-        elif cmd in ("l", "left", "kiri"):
-            nav_effort_internal("left")
-        elif cmd in ("r", "right", "kanan"):
-            nav_effort_internal("right")
-        elif cmd.startswith("t "):
-            part = cmd[2:].strip()
-            toggle_model_rotation(part)
-        elif cmd.isdigit():
-            set_model_internal(cmd)
-        else:
-            set_model_internal(cmd)
 
 def ui_add_account(lang="id"):
     clear_screen()
@@ -704,7 +652,6 @@ def interactive_loop():
         print(f" \033[1;37m3.\033[0m {t['opt3']}")
         print(f" \033[1;37m4.\033[0m {t['opt4']}")
         print(f" \033[1;37m5.\033[0m {t['opt5']}")
-        print(f" \033[1;37m6.\033[0m {t['opt6']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
         print(f" {t['ctrl_c_hint']}")
         print("\033[2m───────────────────────────────────────────────\033[0m")
@@ -727,9 +674,6 @@ def interactive_loop():
             ui_manage_rotation_pool(lang)
             input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "5":
-            ui_manage_models(lang)
-            input(f"\033[2m{t['press_enter']}\033[0m")
-        elif choice == "6":
             clear_screen()
             print(get_cat_banner(lang))
             print("\nSampai jumpa! / Goodbye!\n")
