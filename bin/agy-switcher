@@ -418,9 +418,10 @@ TEXTS = {
         "opt3": "Daftar Akun (List account)",
         "opt4": "Kelola Auto-Rotation Pool (Toggle On/Off)",
         "opt5": "Keluar (Exit)",
+        "back_opt": "Kembali ke menu sebelumnya (Back)",
         "choose": "Pilih menu [1-5]: ",
         "invalid": "Pilihan tidak valid. Silakan coba lagi.",
-        "press_enter": "Tekan [Enter] untuk kembali ke menu...",
+        "press_enter": "Tekan [Enter] untuk kembali ke menu utama...",
         "ctrl_c_hint": "Tekan Ctrl+C untuk keluar kapan saja",
         "bye": "Keluar dari program (Ctrl+C). Sampai jumpa!\n",
         "list_title": "DAFTAR AKUN ANTIGRAVITY",
@@ -432,16 +433,18 @@ TEXTS = {
         "add_step1": "1. Perintah `agy` akan dijalankan.",
         "add_step2": "2. Buka link di browser & login menggunakan AKUN BARU Anda.",
         "add_step3": "3. Setelah berhasil masuk ke prompt agy, ketik /exit.",
-        "add_press": "Tekan [Enter] untuk mulai...",
+        "add_press": "Tekan [Enter] untuk mulai, atau ketik 0 untuk kembali: ",
+        "add_cancel": "Penambahan akun dibatalkan. Kembali ke menu utama.",
         "add_success": "Akun baru berhasil ditambahkan:",
         "add_failed": "Gagal mendeteksi akun baru atau proses dibatalkan.",
         "del_title": "HAPUS AKUN",
-        "del_prompt": "Masukkan nomor atau email akun yang ingin dihapus (0 untuk batal): ",
+        "del_prompt": "Masukkan nomor atau email akun yang ingin dihapus (0 untuk kembali): ",
         "del_confirm": "Yakin ingin menghapus akun {}? (y/n): ",
         "del_success": "Akun berhasil dihapus: {}",
-        "del_cancel": "Penghapusan dibatalkan.",
+        "del_cancel": "Penghapusan dibatalkan. Kembali ke menu utama.",
         "del_not_found": "Akun tidak ditemukan.",
-        "del_was_active": "Akun yang dihapus adalah akun aktif. Mengalihkan ke akun lain..."
+        "del_was_active": "Akun yang dihapus adalah akun aktif. Mengalihkan ke akun lain...",
+        "pool_prompt": "Ketik nomor akun untuk toggle ON/OFF (0 untuk kembali): "
     },
     "en": {
         "title": "ANTIGRAVITY ACCOUNT SWITCHER CLI",
@@ -451,9 +454,10 @@ TEXTS = {
         "opt3": "List account",
         "opt4": "Manage Auto-Rotation Pool (Toggle On/Off)",
         "opt5": "Exit",
+        "back_opt": "Back to previous menu",
         "choose": "Select option [1-5]: ",
         "invalid": "Invalid selection. Please try again.",
-        "press_enter": "Press [Enter] to return to menu...",
+        "press_enter": "Press [Enter] to return to main menu...",
         "ctrl_c_hint": "Press Ctrl+C to exit anytime",
         "bye": "Exiting program (Ctrl+C). Goodbye!\n",
         "list_title": "ANTIGRAVITY ACCOUNTS LIST",
@@ -465,20 +469,22 @@ TEXTS = {
         "add_step1": "1. The `agy` command will be launched.",
         "add_step2": "2. Open the login URL in browser & authenticate with your NEW account.",
         "add_step3": "3. Once in the agy prompt, type /exit to save.",
-        "add_press": "Press [Enter] to proceed...",
+        "add_press": "Press [Enter] to proceed, or type 0 to return: ",
+        "add_cancel": "Account addition cancelled. Returning to main menu.",
         "add_success": "New account successfully added:",
         "add_failed": "Failed to detect new account or process was cancelled.",
         "del_title": "REMOVE ACCOUNT",
-        "del_prompt": "Enter account number or email to remove (0 to cancel): ",
+        "del_prompt": "Enter account number or email to remove (0 to return): ",
         "del_confirm": "Are you sure you want to remove {}? (y/n): ",
         "del_success": "Account successfully removed: {}",
-        "del_cancel": "Deletion cancelled.",
+        "del_cancel": "Deletion cancelled. Returning to main menu.",
         "del_not_found": "Account not found.",
-        "del_was_active": "Deleted account was the active account. Switching to another account..."
+        "del_was_active": "Deleted account was the active account. Switching to another account...",
+        "pool_prompt": "Enter account number to toggle ON/OFF (0 to return): "
     }
 }
 
-def print_list(lang="id"):
+def print_list(lang="id", show_back=False):
     clear_screen()
     t = TEXTS[lang]
     print(get_cat_banner(lang))
@@ -493,10 +499,13 @@ def print_list(lang="id"):
             rot_tag = " [Auto-Rotate: ✅ ON]" if acc["auto_rotate"] else " [Auto-Rotate: ⛔ OFF]"
             print(f" \033[1;33m{idx}.\033[0m \033[1;37m{acc['email']}\033[0m{tag}{rot_tag}")
             print(f"    \033[2mFile: {acc['file']} | Exp: {acc['expiry']}\033[0m")
+    if show_back:
+        print(f" \033[1;33m0.\033[0m \033[1;37m{t['back_opt']}\033[0m")
     print("\033[1;36m" + "=" * (len(t['list_title']) + 36) + "\033[0m")
     print(f"\033[1;32m{t['total']}: {len(accounts)}\033[0m\n")
 
 def ui_manage_rotation_pool(lang="id"):
+    t = TEXTS[lang]
     while True:
         clear_screen()
         print(get_cat_banner(lang))
@@ -509,12 +518,12 @@ def ui_manage_rotation_pool(lang="id"):
             status = "\033[1;32m✅ ON\033[0m" if acc["auto_rotate"] else "\033[1;31m⛔ OFF\033[0m"
             curr = " \033[1;33m(sedang dipakai)\033[0m" if acc["is_active"] else ""
             print(f" {idx}. {acc['email']} = {status}{curr}")
+        print(f" \033[1;33m0.\033[0m \033[1;37m{t['back_opt']}\033[0m")
         
         print("\033[1;36m" + "=" * 48 + "\033[0m")
-        prompt = "Ketik nomor akun untuk toggle ON/OFF (0 untuk kembali): " if lang == "id" else "Enter account number to toggle ON/OFF (0 to return): "
-        choice = input(prompt).strip()
+        choice = input(t["pool_prompt"]).strip()
         
-        if not choice or choice == "0":
+        if not choice or choice in ("0", "b", "back", "q", "exit"):
             break
         if choice.isdigit():
             idx = int(choice) - 1
@@ -533,6 +542,17 @@ def ui_add_account(lang="id"):
     t = TEXTS[lang]
     print(get_cat_banner(lang))
     print(f"\n\033[1;32m{t['add_intro']}\033[0m")
+
+    print(f"\n\033[1;33m{t['add_notice']}\033[0m")
+    print(t["add_step1"])
+    print(t["add_step2"])
+    print(t["add_step3"])
+    print(f"\n \033[1;33m0.\033[0m \033[1;37m{t['back_opt']}\033[0m\n")
+
+    ans = input(f"\033[1;36m{t['add_press']}\033[0m").strip()
+    if ans in ("0", "b", "back", "q", "exit"):
+        print(f"\033[2m{t['add_cancel']}\033[0m")
+        return False
     
     if os.path.exists(ACTIVE_TOKEN):
         curr_email = get_email_from_token_file(ACTIVE_TOKEN)
@@ -543,13 +563,6 @@ def ui_add_account(lang="id"):
     if os.path.exists(ACTIVE_TOKEN):
         shutil.move(ACTIVE_TOKEN, temp_backup)
 
-    print(f"\n\033[1;33m{t['add_notice']}\033[0m")
-    print(t["add_step1"])
-    print(t["add_step2"])
-    print(t["add_step3"])
-    print()
-
-    input(f"\033[1;36m{t['add_press']}\033[0m")
     try:
         subprocess.run(["agy"])
     except Exception as e:
@@ -575,18 +588,19 @@ def ui_add_account(lang="id"):
             os.remove(temp_backup)
         except Exception:
             pass
+    return True
 
 def ui_remove_account(lang="id"):
     t = TEXTS[lang]
-    print_list(lang)
+    print_list(lang, show_back=True)
     accounts = get_accounts()
     if not accounts:
-        return
+        return False
 
     choice = input(f"\033[1;33m{t['del_prompt']}\033[0m").strip()
-    if not choice or choice == "0":
+    if not choice or choice in ("0", "b", "back", "q", "exit"):
         print(f"\033[2m{t['del_cancel']}\033[0m")
-        return
+        return False
 
     target = None
     if choice.isdigit():
@@ -601,7 +615,7 @@ def ui_remove_account(lang="id"):
 
     if not target:
         print(f"\033[1;31m{t['del_not_found']}\033[0m")
-        return
+        return True
 
     confirm = input(f"\033[1;31m{t['del_confirm'].format(target['email'])}\033[0m").strip().lower()
     if confirm in ("y", "yes", "ya"):
@@ -624,6 +638,7 @@ def ui_remove_account(lang="id"):
             print(f"Error removing account: {e}")
     else:
         print(f"\033[2m{t['del_cancel']}\033[0m")
+    return True
 
 def interactive_loop():
     # 1. Pilih Bahasa (Layar bersih)
@@ -632,10 +647,16 @@ def interactive_loop():
     print("\n\033[1;36mPilih Bahasa / Select Language:\033[0m")
     print(" \033[1;33m1.\033[0m Bahasa Indonesia")
     print(" \033[1;33m2.\033[0m English")
+    print(" \033[1;33m3.\033[0m Keluar / Exit")
     print("\033[2m───────────────────────────────────────────────\033[0m")
     print("\033[2m(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)\033[0m")
     print("\033[2m───────────────────────────────────────────────\033[0m")
-    lang_choice = input("Pilih [1/2] (default: 1): ").strip()
+    lang_choice = input("Pilih [1/2/3] (default: 1, 3 untuk keluar / 3 to exit): ").strip()
+    if lang_choice in ("3", "0", "q", "exit"):
+        clear_screen()
+        print(get_cat_banner("id"))
+        print("\nSampai jumpa! / Goodbye!\n")
+        return
     lang = "en" if lang_choice == "2" else "id"
 
     t = TEXTS[lang]
@@ -662,17 +683,18 @@ def interactive_loop():
         choice = input(t["choose"]).strip()
 
         if choice == "1":
-            ui_add_account(lang)
-            input(f"\n\033[2m{t['press_enter']}\033[0m")
+            proceed = ui_add_account(lang)
+            if proceed:
+                input(f"\n\033[2m{t['press_enter']}\033[0m")
         elif choice == "2":
-            ui_remove_account(lang)
-            input(f"\n\033[2m{t['press_enter']}\033[0m")
+            proceed = ui_remove_account(lang)
+            if proceed:
+                input(f"\n\033[2m{t['press_enter']}\033[0m")
         elif choice == "3":
-            print_list(lang)
+            print_list(lang, show_back=True)
             input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "4":
             ui_manage_rotation_pool(lang)
-            input(f"\033[2m{t['press_enter']}\033[0m")
         elif choice == "5":
             clear_screen()
             print(get_cat_banner(lang))
