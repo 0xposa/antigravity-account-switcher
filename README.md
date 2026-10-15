@@ -29,6 +29,7 @@ Google Antigravity CLI (`agy`) secara bawaan hanya menyimpan satu sesi login akt
 
 ## ✨ Fitur Utama
 - 📱 **Menu Termux Interaktif (`agy-switcher`)**: Tampilan TUI terminal bersih, banner ASCII keren, tanpa emoji berlebih di menu, serta dukungan dwibahasa (Indonesia & English).
+- 🧭 **Navigasi Intuitif**: Opsi kembali (`0`) di semua submenu dan opsi keluar langsung (`3`) pada menu pemilihan bahasa awal.
 - ➕ **Tambah Akun Tanpa Gangguan**: Tambahkan akun Google baru tanpa mengeluarkan akun yang sedang aktif.
 - 🗑️ **Hapus Akun**: Bersihkan akun yang sudah tidak diperlukan dengan mudah.
 - 📋 **Daftar Akun Akurat**: Menampilkan daftar akun, status aktif real-time, dan status auto-rotasi (`✅ on` / `⛔ off`).
@@ -63,7 +64,19 @@ Jalankan perintah berikut:
 agy-switcher
 ```
 
-Menu utama akan tampil bersih:
+Menu awal pemilihan bahasa:
+```text
+Pilih Bahasa / Select Language:
+ 1. Bahasa Indonesia
+ 2. English
+ 3. Keluar / Exit
+─────────────────────────────────────────────
+(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)
+─────────────────────────────────────────────
+Pilih [1/2/3] (default: 1, 3 untuk keluar / 3 to exit): 
+```
+
+Setelah memilih bahasa, Menu Utama akan tampil:
 ```text
  █████╗  ██████╗ ██╗   ██╗
 ██╔══██╗██╔════╝ ╚██╗ ██╔╝
@@ -92,10 +105,11 @@ Menu utama akan tampil bersih:
 Pilih menu [1-5]:
 ```
 
-* **1. Tambah Akun**: Mengamankan token aktif saat ini, membuka browser untuk login akun Google baru, dan menyimpannya ke pool akun.
-* **2. Hapus Akun**: Memilih akun yang ingin dihapus dari daftar penyimpanan.
-* **3. Daftar Akun**: Melihat semua akun yang tersimpan beserta tanda `[AKTIF]` dan status auto-rotasinya.
-* **4. Kelola Auto-Rotation Pool**: Mengaktifkan (`✅ on`) atau menonaktifkan (`⛔ off`) akun dalam rotasi otomatis.
+* **1. Tambah Akun**: Mengamankan token aktif saat ini, membuka browser untuk login akun Google baru, dan menyimpannya ke pool akun (tersedia opsi `0` untuk kembali).
+* **2. Hapus Akun**: Memilih akun yang ingin dihapus dari daftar penyimpanan (tersedia opsi `0` untuk kembali).
+* **3. Daftar Akun**: Melihat semua akun yang tersimpan beserta tanda `[AKTIF]` dan status auto-rotasinya (tekan `Enter` atau `0` untuk kembali).
+* **4. Kelola Auto-Rotation Pool**: Mengaktifkan (`✅ on`) atau menonaktifkan (`⛔ off`) akun dalam rotasi otomatis (ketik nomor akun untuk toggle, `0` untuk kembali).
+* **5. Keluar**: Menutup aplikasi. (Setiap submenu juga dilengkapi opsi `0` untuk kembali ke menu utama kapan saja).
 
 ---
 
@@ -128,6 +142,7 @@ Google Antigravity CLI (`agy`) natively only retains a single active login sessi
 
 ## ✨ Key Features
 - 📱 **Interactive Termux TUI (`agy-switcher`)**: Single-screen, clean terminal UI with ASCII header, bilingual prompts, and no emoji clutter in menu items.
+- 🧭 **Intuitive Navigation**: Seamless return option (`0`) across all submenus and quick exit (`3`) in the initial language selector.
 - ➕ **Seamless Account Addition**: Add additional Google accounts without disturbing your active session credentials.
 - 🗑️ **Account Deletion**: Easily prune inactive or decommissioned accounts.
 - 📋 **Live Account Listing**: Inspect account pools with real-time `[ACTIVE]` indicators and auto-rotation statuses (`✅ on` / `⛔ off`).
@@ -162,7 +177,19 @@ Execute:
 agy-switcher
 ```
 
-Access the clean main menu:
+Initial language selection menu:
+```text
+Pilih Bahasa / Select Language:
+ 1. Bahasa Indonesia
+ 2. English
+ 3. Keluar / Exit
+─────────────────────────────────────────────
+(Tekan Ctrl+C untuk keluar / Press Ctrl+C to exit)
+─────────────────────────────────────────────
+Pilih [1/2/3] (default: 1, 3 untuk keluar / 3 to exit): 
+```
+
+After choosing your language, the Main Menu appears:
 ```text
  █████╗  ██████╗ ██╗   ██╗
 ██╔══██╗██╔════╝ ╚██╗ ██╔╝
@@ -190,6 +217,12 @@ Access the clean main menu:
 ─────────────────────────────────────────────
 Select option [1-5]:
 ```
+
+* **1. Add account**: Secure current token, launch browser for authentication, and store credentials (option `0` to return).
+* **2. Remove account**: Select an account to delete from storage (option `0` to return).
+* **3. List account**: Inspect all saved accounts, `[ACTIVE]` indicator, and auto-rotation states (press `Enter` or `0` to return).
+* **4. Manage Auto-Rotation Pool**: Toggle failover inclusion (`✅ on` / `⛔ off`) per account (type number to toggle, `0` to return).
+* **5. Exit**: Close the application. (All submenus also feature a dedicated `0` option to return to the main menu immediately).
 
 ---
 
