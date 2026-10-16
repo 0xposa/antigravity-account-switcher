@@ -1,33 +1,50 @@
 ---
 name: antigravity-switcher
-description: Native Antigravity Multi-Account Switcher with Zero-Interruption Auto-Rotation on Limit (HTTP 429). Handles /antigravity-switcher, /account-switcher, and /switch-account.
+description: Mengaktifkan dan menonaktifkan fitur Zero-Interruption Auto-Rotation pada batas kuota (HTTP 429). Trigger dengan /antigravity-switcher.
 ---
 
-# Antigravity Switcher Skill
+# Antigravity Switcher Skill (Auto-Rotation Manager)
 
 ## MANDATORY AGENT BEHAVIOR:
-- **GUNAKAN TOOL `ask_question`** untuk menampilkan dialog modal interaktif saat slash command akun dipanggil.
+- **GUNAKAN TOOL `ask_question`** untuk menampilkan dialog modal interaktif saat slash command `/antigravity-switcher` dipanggil.
 - **DO NOT** output conversational filler (e.g. "Sure!", "How can I help you?", "I am preparing options...").
-- Read real accounts dynamically using `agy-switcher --list-json`.
+- Cek status auto-rotation saat ini dengan `agy-switcher --auto-rotate-status`.
 
-## 1. WHEN /account-switcher, /switch-account, OR /antigravity-switcher IS TRIGGERED:
-1. Run `agy-switcher --list-json` in background to retrieve current accounts.
-2. Call `ask_question` tool with:
-   - `question`: "Pilih akun Google Antigravity yang ingin Anda gunakan:"
-   - `options`: List of account emails (mark active with ` (Aktif)`).
+## 1. WHEN /antigravity-switcher IS TRIGGERED:
+1. Jalankan `agy-switcher --auto-rotate-status` di background untuk mengetahui status saat ini (`ENABLED` atau `DISABLED`).
+2. Panggil tool `ask_question` dengan:
+   - `question`: "Pilih status Zero-Interruption Auto-Rotation:"
+   - `options`:
+     - Jika status saat ini `ENABLED`:
+       - `1. Aktifkan (Aktif)`
+       - `2. Nonaktifkan`
+     - Jika status saat ini `DISABLED`:
+       - `1. Aktifkan`
+       - `2. Nonaktifkan (Aktif)`
    - `is_multi_select`: `false`
-3. After user submits response:
-   - Extract email from selection (strip ` (Aktif)` if present).
-   - Run `agy-switcher --switch "<chosen_email>"`.
-   - Confirm concisely: `Switched active account to: <chosen_email>`.
+3. Setelah user memilih respon:
+   - Jika pilihan mengandung `Aktifkan` atau `1`:
+     - Jalankan `agy-switcher --auto-rotate on`.
+     - Konfirmasi secara singkat: `✅ Zero-Interruption Auto-Rotation berhasil diaktifkan.`
+   - Jika pilihan mengandung `Nonaktifkan` atau `2`:
+     - Jalankan `agy-switcher --auto-rotate off`.
+     - Konfirmasi secara singkat: `⛔ Zero-Interruption Auto-Rotation berhasil dinonaktifkan.`
 
 ## 2. ZERO-INTERRUPTION AUTO-ROTATION PROTOCOL (CRITICAL):
-When an API error occurs on the active model (such as `HTTP 429`, `ResourceExhausted`, `Quota exceeded`, or `Rate limit reached`):
-1. AI must **automatically** run background command:
+Ketika terjadi error kuota/rate limit pada model yang aktif (`HTTP 429`, `ResourceExhausted`, `Quota exceeded`, atau `Rate limit reached`):
+1. Periksa status auto-rotation di background:
    ```bash
-   agy-switcher --rotate
+   agy-switcher --auto-rotate-status
    ```
-   (`agy-switcher` automatically selects the next available account marked `✅ on`).
-2. Briefly notify:
-   > 🔄 *Quota limit reached. Auto-rotated to account: `<new_email>`. Resuming task...*
-3. Immediately retry and continue the interrupted task without stopping or asking the user to manually intervene.
+2. **Jika ENABLED**:
+   - AI harus **otomatis** menjalankan background command:
+     ```bash
+     agy-switcher --rotate
+     ```
+   - Beritahu singkat:
+     > 🔄 *Quota limit reached. Auto-rotated to account: `<new_email>`. Resuming task...*
+   - Langsung lanjutkan tugas atau pemanggilan tool yang tertunda tanpa interupsi.
+3. **Jika DISABLED**:
+   - Jangan rotasi akun otomatis.
+   - Laporkan ke user:
+     > ⚠️ *Batas kuota/rate limit tercapai. Fitur Zero-Interruption Auto-Rotation sedang dinonaktifkan. Silakan gunakan `/switcher-account` untuk mengganti akun secara interaktif atau `/antigravity-switcher` untuk mengaktifkan auto-rotation kembali.*

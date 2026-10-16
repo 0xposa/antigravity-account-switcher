@@ -52,7 +52,12 @@ SKILLS_DIR_GLOBAL="$HOME/.gemini/config/skills"
 SKILLS_DIR_LOCAL="$HOME/.agents/skills"
 SKILLS_DIR_CLI="$HOME/.gemini/antigravity-cli/skills"
 
-for skill_name in antigravity-switcher account-switcher switch-account; do
+# Bersihkan skill legacy lama jika ada
+for old_skill in account-switcher switch-account; do
+  rm -rf "$SKILLS_DIR_GLOBAL/$old_skill" "$SKILLS_DIR_LOCAL/$old_skill" "$SKILLS_DIR_CLI/$old_skill"
+done
+
+for skill_name in antigravity-switcher switcher-account; do
   if [ -d "$SCRIPT_DIR/skills/$skill_name" ]; then
     mkdir -p "$SKILLS_DIR_GLOBAL/$skill_name" "$SKILLS_DIR_LOCAL/$skill_name" "$SKILLS_DIR_CLI/$skill_name"
     cp -r "$SCRIPT_DIR/skills/$skill_name/"* "$SKILLS_DIR_GLOBAL/$skill_name/"
@@ -75,5 +80,7 @@ fi
 
 echo -e "\n\033[1;32m✅ Instalasi Berhasil!\033[0m"
 echo -e "Di Termux: jalankan \033[1;33magy-switcher\033[0m untuk menu interaktif (Add/Remove/List Account)."
-echo -e "Di Antigravity: gunakan \033[1;33m/account-switcher\033[0m atau \033[1;33m/antigravity-switcher\033[0m."
+echo -e "Di Antigravity:"
+echo -e "  - \033[1;33m/switcher-account\033[0m   : Ganti akun Google Antigravity secara interaktif"
+echo -e "  - \033[1;33m/antigravity-switcher\033[0m: Aktifkan / nonaktifkan auto-rotation pada HTTP 429"
 echo -e "Follow creator on X: \033[1;36mhttps://x.com/0xposa\033[0m\n"

@@ -1,9 +1,10 @@
-# 🚀 Antigravity Switcher (`agy-switcher`)
+# 🚀 Antigravity Switcher (`agy-switcher`) v1.0
 
 > **Solusi Multi-Akun & Rotasi Otomatis saat Limit untuk Google Antigravity CLI (`agy`)**  
 > **Multi-Account Manager & Zero-Interruption Auto-Rotation for Google Antigravity CLI (`agy`)**  
 > Dibuat oleh / Created by **[@0xposa](https://x.com/0xposa)** di X (Twitter).
 
+[![Release](https://img.shields.io/badge/Release-v1.0-blue.svg)](https://github.com/0xposa/antigravity-switcher/releases)
 [![Twitter Follow](https://img.shields.io/twitter/follow/0xposa?style=social)](https://x.com/0xposa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Termux%20%7C%20Linux-green.svg)]()
@@ -23,7 +24,7 @@ Google Antigravity CLI (`agy`) secara bawaan hanya menyimpan satu sesi login akt
 1. **Batas Kuota / Rate Limit (HTTP 429)**: Model-model unggulan seperti Claude Opus/Sonnet dan Gemini memiliki batas kuota harian per akun Google. Saat batas habis, alur kerja coding langsung terhenti.
 2. **Repot Ganti Akun**: Harus login ulang manual melalui browser, mengetik perintah berulang, dan kehilangan konteks sesi chat.
 
-**Antigravity Switcher** menyelesaikan masalah ini dengan manajemen multi-akun aman di Termux dan integrasi skill otonom langsung di dalam Antigravity. Saat kuota akun aktif habis, sistem akan **secara otomatis merotasi akun ke akun cadangan yang aktif (`✅ on`) dan melanjutkan tugas tanpa jeda!**
+**Antigravity Switcher v1.0** menyelesaikan masalah ini dengan manajemen multi-akun aman di Termux dan integrasi skill otonom langsung di dalam Antigravity. Saat kuota akun aktif habis, sistem akan **secara otomatis merotasi akun ke akun cadangan yang aktif (`✅ on`) dan melanjutkan tugas tanpa jeda!**
 
 ---
 
@@ -34,7 +35,10 @@ Google Antigravity CLI (`agy`) secara bawaan hanya menyimpan satu sesi login akt
 - 🗑️ **Hapus Akun**: Bersihkan akun yang sudah tidak diperlukan dengan mudah.
 - 📋 **Daftar Akun Akurat**: Menampilkan daftar akun, status aktif real-time, dan status auto-rotasi (`✅ on` / `⛔ off`).
 - ⚡ **Auto-Rotation Fleksibel**: Anda dapat menentukan akun mana yang berpartisipasi dalam rotasi otomatis (`✅ on`) dan akun mana yang dikecualikan (`⛔ off`).
-- 🤖 **Skill Antigravity Native (`/account-switcher`, `/antigravity-switcher`)**: Tampilan dialog interaktif `ask_question` untuk berganti akun secara instan.
+- 🔄 **Zero-Interruption Auto-Rotation**: AI otomatis merotasi akun saat rate limit HTTP 429 tercapai.
+- 🤖 **Skill Antigravity Native**:
+  - `/switcher-account`: Dialog interaktif `ask_question` untuk berganti akun Google secara instan.
+  - `/antigravity-switcher`: Dialog interaktif untuk mengaktifkan atau menonaktifkan fitur Zero-Interruption Auto-Rotation.
 
 ---
 
@@ -58,7 +62,33 @@ bash install.sh
 
 ## 🛠️ Panduan Penggunaan
 
-### 1. Di Terminal Termux (`agy-switcher`)
+### 1. Di Chat Antigravity (Slash Commands)
+
+Gunakan slash commands berikut langsung di dalam sesi prompt Antigravity:
+
+#### 🔹 `/switcher-account`
+Membuka dialog modal interaktif (`ask_question`) untuk memilih dan mengaktifkan akun Google secara instan dari daftar akun tersimpan.
+* Muncul daftar email akun Google yang tersimpan.
+* Akun yang sedang aktif ditandai dengan label ` (Aktif)`.
+* Cukup pilih salah satu akun, dan akun aktif akan langsung berganti seketika!
+
+#### 🔹 `/antigravity-switcher`
+Membuka dialog modal interaktif (`ask_question`) untuk mengaktifkan atau menonaktifkan fitur **Zero-Interruption Auto-Rotation**:
+* `1. Aktifkan` – Menyalakan auto-rotation saat kuota habis.
+* `2. Nonaktifkan` – Mematikan auto-rotation otomatis.
+
+#### ⚡ Alur Zero-Interruption Auto-Rotation:
+* **Jika Status AKTIF**:
+  Saat model terkena error batas kuota (`HTTP 429`, `Rate limit reached`, `ResourceExhausted`), AI akan **secara otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang berstatus `✅ on`, lalu melanjutkan pekerjaan Anda tanpa jeda dan tanpa meminta pergantian manual!
+  > 💡 **Kualitas Model Tetap Terjaga**: Model unggulan yang sedang Anda gunakan (misalnya **Claude Opus 4.6**) **TIDAK akan diturunkan**, karena akun cadangan Anda memiliki kuota harian segar!
+* **Jika Status NONAKTIF**:
+  AI tidak akan berpindah akun otomatis, melainkan menginfokan bahwa batas limit tercapai dan menyarankan Anda mengganti akun via `/switcher-account`.
+
+---
+
+### 2. Di Terminal Termux (`agy-switcher`)
+
+#### Menu Interaktif TUI
 Jalankan perintah berikut:
 ```bash
 agy-switcher
@@ -108,23 +138,29 @@ Pilih menu [1-5]:
 * **1. Tambah Akun**: Mengamankan token aktif saat ini, membuka browser untuk login akun Google baru, dan menyimpannya ke pool akun (tersedia opsi `0` untuk kembali).
 * **2. Hapus Akun**: Memilih akun yang ingin dihapus dari daftar penyimpanan (tersedia opsi `0` untuk kembali).
 * **3. Daftar Akun**: Melihat semua akun yang tersimpan beserta tanda `[AKTIF]` dan status auto-rotasinya (tekan `Enter` atau `0` untuk kembali).
-* **4. Kelola Auto-Rotation Pool**: Mengaktifkan (`✅ on`) atau menonaktifkan (`⛔ off`) akun dalam rotasi otomatis (ketik nomor akun untuk toggle, `0` untuk kembali).
-* **5. Keluar**: Menutup aplikasi. (Setiap submenu juga dilengkapi opsi `0` untuk kembali ke menu utama kapan saja).
+* **4. Kelola Auto-Rotation Pool**: Mengaktifkan (`✅ on`) atau menonaktifkan (`⛔ off`) akun dalam rotasi otomatis, serta opsi `G` untuk toggle fitur Zero-Interruption secara global.
+* **5. Keluar**: Menutup aplikasi.
 
----
+#### Perintah CLI Cepat (Non-Interaktif)
+Bagi pengguna tingkat lanjut atau kebutuhan skrip automasi:
+```bash
+# Menyalakan / mematikan auto-rotation
+agy-switcher --auto-rotate on
+agy-switcher --auto-rotate off
+agy-switcher --auto-rotate status
 
-### 2. Di Dalam Antigravity CLI (Slash Commands)
+# Berganti akun langsung
+agy-switcher --switch "email@gmail.com"
 
-Gunakan slash commands berikut langsung di dalam sesi prompt Antigravity:
+# Rotasi ke akun berikutnya di pool
+agy-switcher --rotate
 
-#### 🔹 `/account-switcher` atau `/antigravity-switcher`
-Membuka dialog modal interaktif (`ask_question`) untuk memilih dan mengaktifkan akun Google secara instan.
+# Melihat akun aktif saat ini
+agy-switcher --active-email
 
-- **Rotasi Otomatis (Zero Interruption)**:
-  Jika akun aktif terkena limit `HTTP 429` (Rate limit / Quota exceeded / ResourceExhausted), asisten AI akan **otomatis menjalankan `agy-switcher --rotate` di latar belakang**, beralih ke akun cadangan berikutnya yang bertanda `✅ on`, lalu langsung melanjutkan kodingan Anda tanpa jeda!
-  > 💡 **Kualitas Model Tetap Terjaga**: Model unggulan yang sedang Anda gunakan (misalnya **Claude Opus**) **TIDAK akan diturunkan/berubah**, karena akun cadangan Anda memiliki kuota harian Claude Opus yang masih segar!
-
-> **Catatan Pemilihan Model**: Untuk mengganti model AI (Gemini, Claude, GPT), gunakan perintah bawaan resmi Antigravity: **`/model`**.
+# Output daftar akun dalam format JSON
+agy-switcher --list-json
+```
 
 ---
 ---
@@ -136,7 +172,7 @@ Google Antigravity CLI (`agy`) natively only retains a single active login sessi
 1. **Quota Limits & Rate Limits (HTTP 429)**: Premier reasoning models (such as Claude Opus/Sonnet and Gemini) have per-account daily quotas. When limits are exceeded, development freezes.
 2. **Tedious Re-authentication**: Manually logging out, opening browser prompts, and resetting sessions disrupts the developer flow.
 
-**Antigravity Switcher** bridges this gap by offering isolated multi-account vault storage in Termux paired with autonomous agent skills inside Antigravity. When a quota exhaustion event occurs, credentials are **automatically rotated to the next available account marked `✅ on`, resuming tasks seamlessly with zero interruptions!**
+**Antigravity Switcher v1.0** bridges this gap by offering isolated multi-account vault storage in Termux paired with autonomous agent skills inside Antigravity. When a quota exhaustion event occurs, credentials are **automatically rotated to the next available account marked `✅ on`, resuming tasks seamlessly with zero interruptions!**
 
 ---
 
@@ -147,7 +183,10 @@ Google Antigravity CLI (`agy`) natively only retains a single active login sessi
 - 🗑️ **Account Deletion**: Easily prune inactive or decommissioned accounts.
 - 📋 **Live Account Listing**: Inspect account pools with real-time `[ACTIVE]` indicators and auto-rotation statuses (`✅ on` / `⛔ off`).
 - ⚡ **Granular Auto-Rotation Pool**: Configure which accounts are active for failover (`✅ on`) and which are kept standby/manual (`⛔ off`).
-- 🤖 **Native Antigravity Skills (`/account-switcher`, `/antigravity-switcher`)**: Interactive `ask_question` modal dialog to switch active accounts on the fly.
+- 🔄 **Zero-Interruption Auto-Rotation**: AI automatically rotates accounts when encountering HTTP 429 rate limits.
+- 🤖 **Native Antigravity Skills**:
+  - `/switcher-account`: Interactive `ask_question` modal dialog to switch active accounts on the fly.
+  - `/antigravity-switcher`: Interactive modal dialog to toggle Zero-Interruption Auto-Rotation on or off.
 
 ---
 
@@ -171,7 +210,33 @@ bash install.sh
 
 ## 🛠️ Usage Guide
 
-### 1. In Termux Terminal (`agy-switcher`)
+### 1. Inside Antigravity CLI (Slash Commands)
+
+Use these slash commands directly within your Antigravity chat prompt:
+
+#### 🔹 `/switcher-account`
+Opens an interactive modal dialog (`ask_question`) to select and activate your Google accounts on the fly from stored accounts.
+* Displays a list of all stored Google accounts.
+* The currently active account is marked with ` (Aktif)`.
+* Select an account to switch immediately!
+
+#### 🔹 `/antigravity-switcher`
+Opens an interactive modal dialog (`ask_question`) to enable or disable the **Zero-Interruption Auto-Rotation** feature:
+* `1. Aktifkan` – Enable auto-rotation upon quota exhaustion.
+* `2. Nonaktifkan` – Disable auto-rotation.
+
+#### ⚡ Zero-Interruption Auto-Rotation Flow:
+* **When ENABLED**:
+  When a model encounters a quota/rate limit error (`HTTP 429`, `Rate limit reached`, `ResourceExhausted`), the AI assistant **automatically runs `agy-switcher --rotate` in the background**, seamlessly switching to the next standby account marked `✅ on`, and immediately resumes your task with zero interruption!
+  > 💡 **Model Quality Maintained**: Your premier model (such as **Claude Opus 4.6**) **remains active**, powered by the fresh daily quota of your standby account!
+* **When DISABLED**:
+  The AI will not rotate accounts automatically. Instead, it informs you that the quota limit has been reached and suggests manually switching via `/switcher-account`.
+
+---
+
+### 2. In Termux Terminal (`agy-switcher`)
+
+#### Interactive TUI Menu
 Execute:
 ```bash
 agy-switcher
@@ -221,21 +286,29 @@ Select option [1-5]:
 * **1. Add account**: Secure current token, launch browser for authentication, and store credentials (option `0` to return).
 * **2. Remove account**: Select an account to delete from storage (option `0` to return).
 * **3. List account**: Inspect all saved accounts, `[ACTIVE]` indicator, and auto-rotation states (press `Enter` or `0` to return).
-* **4. Manage Auto-Rotation Pool**: Toggle failover inclusion (`✅ on` / `⛔ off`) per account (type number to toggle, `0` to return).
-* **5. Exit**: Close the application. (All submenus also feature a dedicated `0` option to return to the main menu immediately).
+* **4. Manage Auto-Rotation Pool**: Toggle failover inclusion (`✅ on` / `⛔ off`) per account, plus option `G` to toggle global Zero-Interruption on/off.
+* **5. Exit**: Close the application.
 
----
+#### Quick CLI Commands (Non-Interactive)
+For advanced users or automation scripts:
+```bash
+# Enable / disable auto-rotation
+agy-switcher --auto-rotate on
+agy-switcher --auto-rotate off
+agy-switcher --auto-rotate status
 
-### 2. Inside Antigravity CLI (Slash Commands)
+# Switch account directly
+agy-switcher --switch "email@gmail.com"
 
-#### 🔹 `/account-switcher` or `/antigravity-switcher`
-Triggers an interactive `ask_question` modal dialog to select and activate your Google accounts on the fly.
+# Rotate to next account in pool
+agy-switcher --rotate
 
-- **Zero-Interruption Auto-Rotation**:
-  When your active account hits `HTTP 429` (Quota exceeded / Rate limit), Antigravity executes `agy-switcher --rotate` in the background, rotating credentials strictly across accounts marked `✅ on`, and resumes work instantly without manual action.
-  > 💡 **No Quality Downgrade**: Your premier model (such as **Claude Opus**) **remains active**, powered by the fresh daily quota of your standby Google account!
+# Show currently active email
+agy-switcher --active-email
 
-> **Note on Model Switching**: To switch models (Gemini, Claude, GPT), use Antigravity's official built-in command: **`/model`**.
+# Output account list in JSON format
+agy-switcher --list-json
+```
 
 ---
 
