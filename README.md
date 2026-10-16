@@ -84,6 +84,13 @@ Membuka dialog modal interaktif (`ask_question`) untuk mengaktifkan atau menonak
 * **Jika Status NONAKTIF**:
   AI tidak akan berpindah akun otomatis, melainkan menginfokan bahwa batas limit tercapai dan menyarankan Anda mengganti akun via `/switcher-account`.
 
+#### 💬 Kontrol Percakapan Alami (Natural Language Chat)
+Selain menggunakan slash command di atas, Anda **bisa langsung berbicara santai** kepada asisten AI tanpa perlu menghafal atau mengetik slash command! Asisten AI memahami instruksi percakapan secara langsung:
+* *"Tunjukkan list akun"* ➔ AI menampilkan daftar semua akun beserta status aktifnya.
+* *"Pindah ke akun 6"* atau *"Ganti ke akun [email]"* ➔ AI langsung mengalihkan sesi ke akun yang diminta.
+* *"Akun apa yang sekarang terhubung?"* ➔ AI mengecek dan memberi tahu email akun yang sedang aktif.
+* *"Aktifkan / nonaktifkan auto-rotation"* ➔ AI langsung mengubah status fitur rotasi otomatis di latar belakang.
+
 ---
 
 ### 2. Di Terminal Termux (`agy-switcher`)
@@ -231,6 +238,13 @@ Opens an interactive modal dialog (`ask_question`) to enable or disable the **Ze
   > 💡 **Model Quality Maintained**: Your premier model (such as **Claude Opus 4.6**) **remains active**, powered by the fresh daily quota of your standby account!
 * **When DISABLED**:
   The AI will not rotate accounts automatically. Instead, it informs you that the quota limit has been reached and suggests manually switching via `/switcher-account`.
+
+#### 💬 Natural Language Conversational Control
+In addition to slash commands, you can **simply chat naturally** with the AI assistant without typing any commands! The assistant directly understands your intent:
+* *"Show account list"* ➔ AI displays a table of all saved accounts and their active statuses.
+* *"Switch to account 6"* or *"Switch to account [email]"* ➔ AI switches credentials immediately.
+* *"Which account is currently active?"* ➔ AI checks and reports the current active account.
+* *"Enable / disable auto-rotation"* ➔ AI toggles the failover feature in the background.
 
 ---
 
